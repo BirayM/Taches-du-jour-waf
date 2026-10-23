@@ -123,7 +123,7 @@ class TaskManager:
     Gestionnaire de persistance des tâches dans un fichier JSON local.
     
     Gère la création automatique du fichier, la lecture ordonnée,
-    l'ajout et la complétion des tâches.
+    l'ajout, la complétion et la suppression des tâches.
     """
 
     def __init__(self, storage_path: str = "data/tasks.json") -> None:
@@ -224,6 +224,26 @@ class TaskManager:
             self._write_tasks(tasks)
 
         return updated_task
+
+    def delete_task(self, task_id: str) -> bool:
+        """
+        Supprime définitivement une tâche du fichier de persistance via son identifiant unique.
+
+        Args:
+            task_id: Identifiant unique de la tâche à supprimer.
+
+        Returns:
+            bool: True si la tâche a été trouvée et supprimée, False si elle n'existait pas.
+        """
+        tasks = self._read_tasks()
+        initial_count = len(tasks)
+        tasks = [task for task in tasks if task.id != task_id]
+
+        if len(tasks) < initial_count:
+            self._write_tasks(tasks)
+            return True
+
+        return False
 
     def get_progress(self) -> ProgressStats:
         """
