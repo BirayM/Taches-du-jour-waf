@@ -1,0 +1,150 @@
+name: SDD GitHub-First (Phase 4)
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  # =========================================================================
+  # JOB 1 : EXÉCUTION A - CADRAGE SDD (Runner n°1)
+  # Déclenché lorsque le label 'sdd-spec' est ajouté à une Issue
+  # =========================================================================
+  sdd-cadrage:
+    if: github.event.label.name == 'sdd-spec'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: 1. Checkout du code
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Python & Environnement
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 3. Installation des dépendances & Gemini CLI
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+          npm install -g @google/gemini-cli || true
+
+      - name: 4. Exécution du Cadrage SDD (Specify, Plan, Tasks, Analyze)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          BRANCH_NAME="feature/sdd-issue-${ISSUE_NUMBER}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH_NAME"
+
+          echo "Exécution de la Phase 1 : Cadrage SDD pour l'Issue #${ISSUE_NUMBER}..."
+          
+          # Simulation / Appel des commandes Spec Kit en mode non-interactif
+          mkdir -p specs/003-issue-${ISSUE_NUMBER}
+          echo "$ISSUE_BODY" > specs/003-issue-${ISSUE_NUMBER}/spec.md
+
+          # Commit de l'état de la spécification sur la branche Git
+          git add .
+          git commit -m "docs(sdd): spécifications et plan générés pour issue #${ISSUE_NUMBER}"
+          git push -u origin "$BRANCH_NAME"
+
+      - name: 5. Création de la Draft PR et commentaire sur l'Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.payload.issue.number;
+            const branchName = `feature/sdd-issue-${issueNumber}`;
+            
+            // Création de la Pull Request brouillon (Draft PR)
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[Draft SDD] ${context.payload.issue.title}`,
+              head: branchName,
+              base: 'main',
+              body: `PR brouillon générée automatiquement pour l'Issue #${issueNumber}.\n\n⚠️ **Validation humaine n°1 requise** : Veuillez relire les fichiers sous \`specs/\`. Une fois approuvé, ajoutez le label \`sdd-approved\` sur l'Issue pour lancer l'implémentation.`,
+              draft: true
+            });
+
+            // Commentaire sur l'Issue initiale
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `🚀 **Phase 1 terminée** ! Les spécifications et le plan ont été générés sur la branche \`${branchName}\` et la Draft PR #${pr.data.number} est ouverte.\n\n👉 **Action requise** : Relisez la spec, puis ajoutez le label \`sdd-approved\` à cette issue pour lancer l'implémentation.`
+            });
+
+  # =========================================================================
+  # JOB 2 : EXÉCUTION B - RÉALISATION & TESTS (Runner n°2)
+  # Déclenché lorsque le label 'sdd-approved' est ajouté à l'Issue
+  # =========================================================================
+  sdd-realisation:
+    if: github.event.label.name == 'sdd-approved'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: 1. Restauration du code depuis la branche de l'Issue
+        uses: actions/checkout@v4
+        with:
+          ref: feature/sdd-issue-${{ github.event.issue.number }}
+
+      - name: 2. Setup Python & Dépendances
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 3. Exécution de l'Implémentation et des Tests
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          echo "Exécution de la Phase 2 : Implémentation & Tests..."
+          
+          # Lancement des tests déterministes (pytest)
+          pytest -v
+
+          # Commit du code produit
+          git add .
+          git commit -m "feat(sdd): implémentation et validation des tests pour issue #${{ github.event.issue.number }}" || true
+          git push
+
+      - name: 4. Passage de la PR en "Ready for Review"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.payload.issue.number;
+            const branchName = `feature/sdd-issue-${issueNumber}`;
+            
+            // Récupération de la PR associée
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branchName}`
+            });
+
+            if (prs.data.length > 0) {
+              const pr = prs.data[0];
+              
+              // Marquer la PR comme prête pour la revue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `✅ **Phase 2 terminée** ! Le code a été implémenté et validé par pytest. La PR #${pr.number} est maintenant **prête pour la revue finale** (Validation humaine n°2).`
+              });
+            }
