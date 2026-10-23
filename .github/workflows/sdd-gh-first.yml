@@ -103,9 +103,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 3. Exécution de l'Implémentation et des Tests
+      - name: 3. Exécution du codage par Gemini CLI et Tests
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -113,14 +114,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          echo "Exécution de la Phase 2 : Implémentation & Tests..."
-          
-          # Lancement des tests déterministes (pytest)
+          echo "--- Exécution du codage à distance ---"
+          # Appel non-interactif de Gemini CLI pour implémenter la feature
+          gemini --prompt "Tu es l'agent de codage. Implémente la fonctionnalité suivante dans l'application Flask (app/routes.py et app/models.py) en respectant les spécifications sous specs/ : $ISSUE_BODY"
+
+          # Lancement déterministe de la suite de tests
           pytest -v
 
-          # Commit du code produit
+          # Commit du code généré par l'IA
           git add .
-          git commit -m "feat(sdd): implémentation et validation des tests pour issue #${{ github.event.issue.number }}" || true
+          git commit -m "feat(sdd): implémentation automatique par Gemini CLI pour issue #${{ github.event.issue.number }}" || true
           git push
 
       - name: 4. Passage de la PR en "Ready for Review"
