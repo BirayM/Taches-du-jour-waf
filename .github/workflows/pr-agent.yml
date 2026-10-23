@@ -8,17 +8,22 @@ on:
 
 jobs:
   pr_agent_job:
-    # Ignore les bots ; pour les commentaires, seuls les collaborateurs peuvent déclencher l'agent.
+    # 1. Ignore les bots
+    # 2. Ignore les PRs en mode Draft (Brouillon) pour éviter les crashs sur diff vide
+    # 3. Restreint les déclenchements par commentaires aux collaborateurs uniquement
     if: >-
       ${{ github.event.sender.type != 'Bot' &&
+      github.event.pull_request.draft == false &&
       (github.event_name == 'pull_request' ||
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) }}
     runs-on: ubuntu-latest
-    # Permissions minimales : commentaires et description de PR, code en lecture seule.
+    
+    # Permissions minimales : commentaires et description de PR, code en lecture seule[cite: 4]
     permissions:
       issues: write
       pull-requests: write
       contents: read
+
     steps:
       - name: PR Agent
         uses: the-pr-agent/pr-agent@v0.42.0
