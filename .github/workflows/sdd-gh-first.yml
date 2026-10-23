@@ -103,9 +103,18 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 3. Exécution du codage par Gemini CLI et Tests
+      - name: Setup Node.js (Requis pour Gemini CLI)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Installation de Gemini CLI
+        run: npm install -g @google/gemini-cli
+
+      - name: 3. Exécution du codage à distance par Gemini CLI et Tests
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: "true"
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           python -m pip install --upgrade pip
@@ -115,13 +124,14 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           echo "--- Exécution du codage à distance ---"
-          # Appel non-interactif de Gemini CLI pour implémenter la feature
-          gemini --prompt "Tu es l'agent de codage. Implémente la fonctionnalité suivante dans l'application Flask (app/routes.py et app/models.py) en respectant les spécifications sous specs/ : $ISSUE_BODY"
+          
+          # Exécution de Gemini CLI via npx pour garantir sa disponibilité dans le PATH
+          npx @google/gemini-cli --prompt "Tu es l'agent de codage. Implémente la fonctionnalité décrite ci-dessous dans l'application Flask (modifie app/routes.py, app/models.py et les templates associés si besoin) : $ISSUE_BODY"
 
           # Lancement déterministe de la suite de tests
           pytest -v
 
-          # Commit du code généré par l'IA
+          # Commit et push du code généré par l'IA
           git add .
           git commit -m "feat(sdd): implémentation automatique par Gemini CLI pour issue #${{ github.event.issue.number }}" || true
           git push
