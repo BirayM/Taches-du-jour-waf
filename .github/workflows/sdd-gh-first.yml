@@ -6,7 +6,7 @@ on:
 
 jobs:
   # =========================================================================
-  # JOB 1 : EXÉCUTION A - CADRAGE SDD (Runner n°1)
+  # JOB 1 : EXÉCUTION A - CADRAGE SDD (Runner éphémère n°1)
   # Déclenché lorsque le label 'sdd-spec' est ajouté à une Issue
   # =========================================================================
   sdd-cadrage:
@@ -26,15 +26,21 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 3. Installation des dépendances & Gemini CLI
+      - name: 3. Setup Node.js (Requis pour Gemini CLI)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 4. Installation des dépendances & Gemini CLI
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt || true
-          npm install -g @google/gemini-cli || true
+          npm install -g @google/gemini-cli
 
-      - name: 4. Exécution du Cadrage SDD (Specify, Plan, Tasks, Analyze)
+      - name: 5. Exécution du Cadrage SDD (Specify, Plan, Tasks, Analyze)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: "true"
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
@@ -45,16 +51,16 @@ jobs:
 
           echo "Exécution de la Phase 1 : Cadrage SDD pour l'Issue #${ISSUE_NUMBER}..."
           
-          # Simulation / Appel des commandes Spec Kit en mode non-interactif
+          # Génération du dossier de spécifications SDD
           mkdir -p specs/003-issue-${ISSUE_NUMBER}
           echo "$ISSUE_BODY" > specs/003-issue-${ISSUE_NUMBER}/spec.md
 
-          # Commit de l'état de la spécification sur la branche Git
+          # Commit et Push forcé sur la branche dédiée
           git add .
           git commit -m "docs(sdd): spécifications et plan générés pour issue #${ISSUE_NUMBER}"
           git push -u origin "$BRANCH_NAME" --force
 
-      - name: 5. Création de la Draft PR et commentaire sur l'Issue
+      - name: 6. Création de la Draft PR et commentaire sur l'Issue
         uses: actions/github-script@v7
         with:
           script: |
@@ -72,7 +78,7 @@ jobs:
               draft: true
             });
 
-            // Commentaire sur l'Issue initiale
+            // Commentaire d'information sur l'Issue initiale
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -81,7 +87,7 @@ jobs:
             });
 
   # =========================================================================
-  # JOB 2 : EXÉCUTION B - RÉALISATION & TESTS (Runner n°2)
+  # JOB 2 : EXÉCUTION B - RÉALISATION & TESTS (Runner éphémère n°2)
   # Déclenché lorsque le label 'sdd-approved' est ajouté à l'Issue
   # =========================================================================
   sdd-realisation:
@@ -98,45 +104,50 @@ jobs:
         with:
           ref: feature/sdd-issue-${{ github.event.issue.number }}
 
-      - name: 2. Setup Python & Dépendances
+      - name: 2. Setup Python & Node.js
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Setup Node.js (Requis pour Gemini CLI)
+      - name: 3. Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Installation de Gemini CLI
-        run: npm install -g @google/gemini-cli
+      - name: 4. Installation des dépendances et Gemini CLI
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm install -g @google/gemini-cli
 
-      - name: 3. Exécution du codage à distance par Gemini CLI et Tests
+      - name: 5. Codage autonome à distance par Gemini CLI & Validation pytest
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_CLI_TRUST_WORKSPACE: "true"
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          echo "--- Exécution du codage à distance ---"
+          echo "--- Lancement du codage autonome à distance ---"
           
-          # Exécution de Gemini CLI via npx pour garantir sa disponibilité dans le PATH
-          npx @google/gemini-cli --prompt "Tu es l'agent de codage. Implémente la fonctionnalité décrite ci-dessous dans l'application Flask (modifie app/routes.py, app/models.py et les templates associés si besoin) : $ISSUE_BODY"
+          # Mode autonome --yolo : autorise l'écriture directe dans les fichiers Python/HTML/CSS/Tests
+          npx @google/gemini-cli --yolo --prompt "Tu es l'agent de codage SDD. En te basant sur le fichier de spécification sous specs/ et sur le besoin suivant : $ISSUE_BODY, modifie directement les fichiers du projet (app/models.py, app/routes.py, app/templates/index.html, app/static/css/style.css, et les fichiers de tests dans tests/) pour implémenter complètement la fonctionnalité."
 
-          # Lancement déterministe de la suite de tests
+          # Exécution déterministe de la suite de tests
           pytest -v
 
-          # Commit et push du code généré par l'IA
-          git add .
-          git commit -m "feat(sdd): implémentation automatique par Gemini CLI pour issue #${{ github.event.issue.number }}" || true
-          git push
+          # Vérification s'il y a des fichiers modifiés et commit effectif
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "feat(sdd): implémentation automatique distante via Gemini CLI (Issue #${{ github.event.issue.number }})"
+            git push origin feature/sdd-issue-${{ github.event.issue.number }}
+          else
+            echo "Erreur : Aucune modification de fichier n'a été appliquée par l'agent."
+            exit 1
+          fi
 
-      - name: 4. Passage de la PR en "Ready for Review"
+      - name: 6. Passage de la PR en état "Ready for Review"
         uses: actions/github-script@v7
         with:
           script: |
@@ -153,11 +164,11 @@ jobs:
             if (prs.data.length > 0) {
               const pr = prs.data[0];
               
-              // Marquer la PR comme prête pour la revue
+              // Notification sur l'Issue
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `✅ **Phase 2 terminée** ! Le code a été implémenté et validé par pytest. La PR #${pr.number} est maintenant **prête pour la revue finale** (Validation humaine n°2).`
+                body: `✅ **Phase 2 terminée** ! Le code a été implémenté et validé par pytest. La PR #${pr.number} contient maintenant le diff complet et est **prête pour la revue finale** (Validation humaine n°2).`
               });
             }
