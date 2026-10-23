@@ -9,7 +9,7 @@ Couvre les exigences :
 """
 
 import pytest
-from app.models import Task, TaskManager, TaskValidationError
+from app.modey import Task, TaskManager, TaskValidationError
 
 
 def test_task_creation_valid():
