@@ -52,7 +52,7 @@ jobs:
           # Commit de l'état de la spécification sur la branche Git
           git add .
           git commit -m "docs(sdd): spécifications et plan générés pour issue #${ISSUE_NUMBER}"
-          git push -u origin "$BRANCH_NAME"
+          git push -u origin "$BRANCH_NAME" --force
 
       - name: 5. Création de la Draft PR et commentaire sur l'Issue
         uses: actions/github-script@v7
