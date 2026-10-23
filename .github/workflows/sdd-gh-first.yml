@@ -114,6 +114,7 @@ jobs:
       - name: 3. Exécution du codage à distance par Gemini CLI et Tests
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: "true"
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           python -m pip install --upgrade pip
