@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 140" width="160" height="140">
+  <defs>
+    <radialGradient id="restBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF7ED"/>
+      <stop offset="100%" stop-color="#FED7AA"/>
+    </radialGradient>
+  </defs>
+  <!-- Fond halo doux -->
+  <ellipse cx="80" cy="110" rx="65" ry="18" fill="#FDBA74" opacity="0.3"/>
+  
+  <!-- Corps du chiot lové -->
+  <ellipse cx="85" cy="85" rx="45" ry="30" fill="#EA580C"/>
+  <ellipse cx="82" cy="85" rx="40" ry="26" fill="#F97316"/>
+  
+  <!-- Petite queue détendue -->
+  <path d="M 125 90 C 135 95, 140 85, 138 78" fill="none" stroke="#C2410C" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- Tête posée doucement -->
+  <circle cx="55" cy="75" r="26" fill="#EA580C"/>
+  <circle cx="54" cy="74" r="23" fill="#F97316"/>
+  
+  <!-- Oreille tombante et paisible -->
+  <path d="M 38 60 C 25 65, 30 85, 42 80 Z" fill="#9A3412"/>
+  
+  <!-- Museau doux posé -->
+  <ellipse cx="50" cy="84" rx="14" ry="10" fill="#FFEDD5"/>
+  <!-- Petite truffe -->
+  <ellipse cx="44" cy="81" rx="5" ry="4" fill="#292524"/>
+  <!-- Bouche paisible -->
+  <path d="M 44 85 C 47 88, 52 87, 54 84" fill="none" stroke="#292524" stroke-width="1.8" stroke-linecap="round"/>
+  
+  <!-- Yeux fermés en courbe sereine (dodo paisible) -->
+  <path d="M 52 68 C 55 72, 60 72, 63 68" fill="none" stroke="#292524" stroke-width="2.2" stroke-linecap="round"/>
+  
+  <!-- Petites pattes rentrées -->
+  <ellipse cx="70" cy="104" rx="10" ry="6" fill="#FFEDD5"/>
+  <ellipse cx="95" cy="104" rx="10" ry="6" fill="#FFEDD5"/>
+  
+  <!-- Bulles de repos Zzz -->
+  <text x="105" y="45" font-family="sans-serif" font-size="14" font-weight="bold" fill="#D97706" opacity="0.8">z</text>
+  <text x="116" y="32" font-family="sans-serif" font-size="18" font-weight="bold" fill="#D97706" opacity="0.6">Z</text>
+  <text x="130" y="18" font-family="sans-serif" font-size="22" font-weight="bold" fill="#D97706" opacity="0.4">Z</text>
+</svg>

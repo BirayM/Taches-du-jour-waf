@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFEED9"/>
+      <stop offset="100%" stop-color="#FED7AA"/>
+    </radialGradient>
+  </defs>
+  <!-- Cercle de fond chaleureux -->
+  <circle cx="60" cy="60" r="56" fill="url(#bgGrad)" stroke="#F97316" stroke-width="3"/>
+  
+  <!-- Oreille gauche -->
+  <path d="M 28 40 C 18 25, 20 65, 34 55 Z" fill="#9A3412" stroke="#7C2D12" stroke-width="2"/>
+  <!-- Oreille droite -->
+  <path d="M 92 40 C 102 25, 100 65, 86 55 Z" fill="#9A3412" stroke="#7C2D12" stroke-width="2"/>
+  
+  <!-- Tête du chien -->
+  <ellipse cx="60" cy="62" rx="34" ry="30" fill="#EA580C"/>
+  <ellipse cx="60" cy="66" rx="28" ry="24" fill="#F97316"/>
+  
+  <!-- Yeux vifs et pétillants -->
+  <ellipse cx="46" cy="56" rx="5" ry="6" fill="#1C1917"/>
+  <ellipse cx="74" cy="56" rx="5" ry="6" fill="#1C1917"/>
+  <circle cx="44" cy="54" r="2" fill="#FFFFFF"/>
+  <circle cx="72" cy="54" r="2" fill="#FFFFFF"/>
+  
+  <!-- Museau clair -->
+  <ellipse cx="60" cy="74" rx="16" ry="12" fill="#FFEDD5"/>
+  
+  <!-- Truffe mignonne en forme de cœur arrondi -->
+  <path d="M 54 68 C 54 65, 66 65, 66 68 C 66 73, 60 76, 60 76 C 60 76, 54 73, 54 68 Z" fill="#292524"/>
+  <circle cx="58" cy="68" r="1.5" fill="#FFFFFF" opacity="0.6"/>
+  
+  <!-- Sourire canin accueillant -->
+  <path d="M 60 76 L 60 80 M 52 79 C 56 83, 60 83, 60 80 C 60 83, 64 83, 68 79" fill="none" stroke="#292524" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Petite langue joyeuse -->
+  <path d="M 57 81 C 57 87, 63 87, 63 81 Z" fill="#F43F5E"/>
+  
+  <!-- Joues roses -->
+  <circle cx="38" cy="68" r="4" fill="#FB7185" opacity="0.4"/>
+  <circle cx="82" cy="68" r="4" fill="#FB7185" opacity="0.4"/>
+</svg>

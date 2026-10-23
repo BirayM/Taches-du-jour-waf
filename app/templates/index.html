@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Section Citation de motivation -->
+<section class="quote-card" aria-label="Message de motivation">
+    <div class="quote-icon">🐶</div>
+    <div class="quote-body">
+        <blockquote class="quote-text">« {{ quote.text }} »</blockquote>
+        <cite class="quote-author">— {{ quote.author }}</cite>
+    </div>
+</section>
+
+<!-- Section Formulaire d'ajout de tâche -->
+<section class="task-form-card" aria-label="Ajouter une tâche">
+    <h2>Nouvelle mission du jour</h2>
+    <form action="{{ url_for('main.add_task') }}" method="POST" class="task-form">
+        <div class="input-group">
+            <input 
+                type="text" 
+                name="title" 
+                id="task-title" 
+                class="task-input" 
+                placeholder="Ex. Préparer le cours de programmation..." 
+                maxlength="200" 
+                required 
+                autofocus 
+                aria-label="Intitulé de la nouvelle tâche"
+            >
+            <button type="submit" class="btn btn-primary">
+                <span>Ajouter</span>
+                <span class="btn-icon">🐾</span>
+            </button>
+        </div>
+        <small class="form-hint">Entre 1 et 200 caractères. Le champ se réinitialise pour enchaîner vos saisies.</small>
+    </form>
+</section>
+
+<!-- Section Liste des tâches -->
+<section class="task-list-section" aria-label="Liste des tâches planifiées">
+    <div class="section-header">
+        <h2>Mes activités ({% if tasks %}{{ tasks|length }}{% else %}0{% endif %})</h2>
+    </div>
+
+    {% if not tasks %}
+        <!-- État vide : invitation bienveillante avec chien au repos -->
+        <div class="empty-state">
+            <img src="{{ url_for('static', filename='images/dogs/dog-resting.svg') }}" 
+                 alt="Chiot paisible au repos" 
+                 class="empty-state-dog">
+            <h3>Aucune tâche pour l'instant !</h3>
+            <p>Prends un instant pour réfléchir à ta journée et ajoute ta première mission ci-dessus.</p>
+        </div>
+    {% else %}
+        <!-- Liste ordonnée des tâches -->
+        <ul class="task-list">
+            {% for task in tasks %}
+                <li class="task-item {% if task.completed %}is-completed{% endif %}">
+                    <div class="task-content">
+                        <!-- Formulaire de complétion -->
+                        <form action="{{ url_for('main.complete_task', task_id=task.id) }}" method="POST" class="complete-form">
+                            <button type="submit" 
+                                    class="checkbox-btn {% if task.completed %}checked{% endif %}" 
+                                    aria-label="{% if task.completed %}Tâche terminée{% else %}Marquer comme terminée{% endif %}"
+                                    {% if task.completed %}disabled{% endif %}>
+                                {% if task.completed %}✓{% endif %}
+                            </button>
+                        </form>
+                        <span class="task-title">{{ task.title }}</span>
+                    </div>
+                    <span class="task-badge {% if task.completed %}badge-done{% else %}badge-pending{% endif %}">
+                        {% if task.completed %}Terminée 🎉{% else %}À faire 🐾{% endif %}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</section>
+{% endblock %}
