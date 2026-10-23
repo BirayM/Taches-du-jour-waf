@@ -117,3 +117,116 @@ def test_task_manager_get_all_ordered(temp_storage_path):
 
     ordered = manager.get_all_tasks()
     assert [t.id for t in ordered] == ["1", "2", "3"]
+
+
+# ==============================================================================
+# Tests pour Feature 002 : Suivi de la Progression Quotidienne
+# ==============================================================================
+
+def test_progress_stats_partial_and_rounding():
+    """Vérifie le calcul exact et l'arrondi du pourcentage pour des complétions partielles (T005)."""
+    from app.models import ProgressStats
+
+    # 1/4 = 25%
+    p1 = ProgressStats(total=4, completed=1)
+    assert p1.total == 4
+    assert p1.completed == 1
+    assert p1.percentage == 25
+    assert p1.is_all_completed is False
+
+    # 2/4 = 50%
+    p2 = ProgressStats(total=4, completed=2)
+    assert p2.percentage == 50
+    assert p2.is_all_completed is False
+
+    # 1/3 = 33% (arrondi inférieur)
+    p3 = ProgressStats(total=3, completed=1)
+    assert p3.percentage == 33
+    assert p3.is_all_completed is False
+
+    # 2/3 = 67% (arrondi supérieur)
+    p4 = ProgressStats(total=3, completed=2)
+    assert p4.percentage == 67
+    assert p4.is_all_completed is False
+
+    # 0/3 = 0%
+    p5 = ProgressStats(total=3, completed=0)
+    assert p5.percentage == 0
+    assert p5.is_all_completed is False
+
+
+def test_task_manager_get_progress_partial(task_manager):
+    """Vérifie que TaskManager.get_progress() reflète fidèlement les ajouts et complétions (T005)."""
+    t1 = task_manager.add_task("Tâche 1")
+    t2 = task_manager.add_task("Tâche 2")
+    t3 = task_manager.add_task("Tâche 3")
+    t4 = task_manager.add_task("Tâche 4")
+
+    # Initialement 0 sur 4 terminées (0%)
+    progress0 = task_manager.get_progress()
+    assert progress0.total == 4
+    assert progress0.completed == 0
+    assert progress0.percentage == 0
+    assert progress0.is_all_completed is False
+
+    # 1 tâche complétée -> 25%
+    task_manager.mark_completed(t1.id)
+    progress1 = task_manager.get_progress()
+    assert progress1.total == 4
+    assert progress1.completed == 1
+    assert progress1.percentage == 25
+    assert progress1.is_all_completed is False
+
+    # 2ème tâche complétée -> 50%
+    task_manager.mark_completed(t2.id)
+    progress2 = task_manager.get_progress()
+    assert progress2.total == 4
+    assert progress2.completed == 2
+    assert progress2.percentage == 50
+    assert progress2.is_all_completed is False
+
+
+def test_progress_stats_all_completed_and_reset(task_manager):
+    """Vérifie le déclenchement de is_all_completed à 100% et son retour à False lors d'un ajout (T010)."""
+    t1 = task_manager.add_task("Mission 1")
+    t2 = task_manager.add_task("Mission 2")
+
+    task_manager.mark_completed(t1.id)
+    task_manager.mark_completed(t2.id)
+
+    # Complétion à 100%
+    prog_100 = task_manager.get_progress()
+    assert prog_100.total == 2
+    assert prog_100.completed == 2
+    assert prog_100.percentage == 100
+    assert prog_100.is_all_completed is True
+
+    # Ajout d'une 3ème tâche non terminée : la complétion retombe
+    task_manager.add_task("Mission 3")
+    prog_reset = task_manager.get_progress()
+    assert prog_reset.total == 3
+    assert prog_reset.completed == 2
+    assert prog_reset.percentage == 67
+    assert prog_reset.is_all_completed is False
+
+
+def test_progress_stats_empty_list_zero_division_guard(task_manager):
+    """Vérifie la garde de division par zéro et l'absence de fausse complétion sur liste vide (T014)."""
+    from app.models import ProgressStats
+
+    # Test direct de la dataclass avec total = 0
+    stats = ProgressStats(total=0, completed=0)
+    assert stats.total == 0
+    assert stats.completed == 0
+    assert stats.percentage == 0
+    assert stats.is_all_completed is False
+
+    # Test via TaskManager avec stockage vide
+    progress = task_manager.get_progress()
+    assert progress.total == 0
+    assert progress.completed == 0
+    assert progress.percentage == 0
+    assert progress.is_all_completed is False
+
+
+

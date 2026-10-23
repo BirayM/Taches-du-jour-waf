@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% if progress and progress.is_all_completed %}
+<!-- Section Célébration festive -->
+<section class="celebration-card" aria-label="Célébration des tâches accomplies">
+    <img src="{{ url_for('static', filename='images/dogs/dog-cheer.svg') }}" 
+         alt="Chien heureux célébrant la réussite" 
+         class="celebration-dog">
+    <div class="celebration-content">
+        <h3>Bravo ! Toutes les missions du jour sont terminées ! 🎉</h3>
+        <p>Tu as accompli l'intégralité de tes objectifs du jour. Profite bien de ta journée ! 🐾</p>
+    </div>
+</section>
+{% endif %}
+
 <!-- Section Citation de motivation -->
 <section class="quote-card" aria-label="Message de motivation">
     <div class="quote-icon">🐶</div>
@@ -34,6 +47,26 @@
         <small class="form-hint">Entre 1 et 200 caractères. Le champ se réinitialise pour enchaîner vos saisies.</small>
     </form>
 </section>
+
+{% if progress and progress.total > 0 %}
+<!-- Section Progression de la journée -->
+<section class="progress-section" aria-label="Progression de la journée">
+    <div class="progress-header">
+        <span class="progress-title">Progression de la journée</span>
+        <span class="progress-counter">
+            {{ progress.completed }} sur {{ progress.total }} terminée{% if progress.completed > 1 %}s{% endif %} ({{ progress.percentage }}%)
+        </span>
+    </div>
+    <div class="progress-track" 
+         role="progressbar" 
+         aria-valuenow="{{ progress.percentage }}" 
+         aria-valuemin="0" 
+         aria-valuemax="100" 
+         aria-label="Pourcentage des tâches accomplies : {{ progress.percentage }}%">
+        <div class="progress-fill" style="width: {{ progress.percentage }}%;"></div>
+    </div>
+</section>
+{% endif %}
 
 <!-- Section Liste des tâches -->
 <section class="task-list-section" aria-label="Liste des tâches planifiées">

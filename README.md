@@ -88,5 +88,7 @@ Ouvrez votre navigateur sur : **[http://localhost:5000](http://localhost:5000)**
 
 - **Ajout en chaîne fluide** : Saisissez l'intitulé d'une tâche et validez (Entrée ou clic). Le formulaire se réinitialise instantanément pour vous permettre d'ajouter la mission suivante.
 - **Liste et suivi** : Consultez vos tâches ordonnées et cochez-les au fur et à mesure de votre progression.
+- **Barre de progression en temps réel** : Visualisez d'un coup d'œil le décompte des tâches terminées sur le total et suivez votre avancement grâce à une jauge graphique animée et accessible (attributs WAI-ARIA natifs).
+- **Célébration festive de fin de journée** : Dès que 100 % de vos tâches sont terminées, une bannière festive exclusive avec un joyeux chiot célébrant votre victoire (`dog-cheer.svg`) s'affiche pour valoriser vos efforts !
 - **Persistance locale** : Vos tâches restent enregistrées dans `data/tasks.json` même si vous arrêtez le serveur.
 - **Ambiance chaleureuse** : Profitez de citations bienveillantes et d'illustrations canines encourageantes tout au long de votre journée.

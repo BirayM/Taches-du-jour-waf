@@ -433,6 +433,108 @@ body {
 }
 
 /* ==========================================================================
+   Section Progression Quotidienne (Feature 002)
+   ========================================================================== */
+.progress-section {
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.progress-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.progress-counter {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    background-color: var(--color-primary-light);
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-full);
+}
+
+.progress-track {
+    width: 100%;
+    height: 12px;
+    background-color: #F0E8DF;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 3px rgba(60, 35, 15, 0.1);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent) 100%);
+    border-radius: var(--radius-full);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   Bannière de Célébration Festive (Feature 002 - US2)
+   ========================================================================== */
+.celebration-card {
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+    border: 2px solid #F59E0B;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1.75rem;
+    box-shadow: 0 8px 24px rgba(217, 119, 6, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    animation: celebrationBounce 0.5s ease-out;
+}
+
+.celebration-dog {
+    width: 84px;
+    height: 84px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 4px 12px rgba(217, 119, 6, 0.25));
+    animation: dogCheerPulse 2s infinite ease-in-out;
+}
+
+.celebration-content h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #9A3412;
+    margin-bottom: 0.35rem;
+    line-height: 1.3;
+}
+
+.celebration-content p {
+    font-size: 0.95rem;
+    color: #78350F;
+    line-height: 1.4;
+}
+
+@keyframes celebrationBounce {
+    0% { transform: scale(0.95); opacity: 0; }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes dogCheerPulse {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+/* ==========================================================================
    Pied de page
    ========================================================================== */
 .app-footer {
@@ -457,6 +559,12 @@ body {
     .header-content {
         flex-direction: column;
         text-align: center;
+    }
+
+    .celebration-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
     }
 
     .input-group {

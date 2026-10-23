@@ -1,10 +1,13 @@
 """
 Module models.py - Gestion des données et persistance locale des tâches.
 
-Ce module définit l'entité Task (représentant une tâche quotidienne)
-et la classe TaskManager qui assure la persistance dans un fichier JSON local.
+Ce module définit :
+- L'entité Task (représentant une tâche quotidienne planifiée).
+- L'entité ProgressStats (statistiques consolidées de complétion et célébration).
+- La classe TaskManager qui assure la persistance dans un fichier JSON local.
+
 Conformément aux principes pédagogiques du projet, le code utilise
-exclusivement la bibliothèque standard de Python (json, uuid, datetime, pathlib).
+exclusivement la bibliothèque standard de Python (dataclasses, json, uuid, datetime, pathlib).
 """
 
 from dataclasses import asdict, dataclass
@@ -77,6 +80,42 @@ class Task:
             completed=bool(data.get("completed", False)),
             created_at=str(data.get("created_at", "")),
         )
+
+
+@dataclass
+class ProgressStats:
+    """
+    Statistiques de progression quotidienne calculées à partir des tâches du jour.
+
+    Attributs :
+        total : Nombre total de tâches planifiées pour la journée (total >= 0).
+        completed : Nombre de tâches ayant le statut completed == True (0 <= completed <= total).
+        percentage : Pourcentage de complétion arrondi à l'entier le plus proche (entre 0 et 100).
+        is_all_completed : Booléen strictement évalué à total > 0 and completed == total.
+    """
+    total: int = 0
+    completed: int = 0
+    percentage: int = 0
+    is_all_completed: bool = False
+
+    def __post_init__(self) -> None:
+        """Valide et garantit la cohérence des indicateurs arithmétiques."""
+        if not isinstance(self.total, int) or self.total < 0:
+            raise TaskValidationError("Le total des tâches doit être un entier positif ou nul.")
+
+        if not isinstance(self.completed, int) or self.completed < 0:
+            raise TaskValidationError("Le nombre de tâches complétées doit être un entier positif ou nul.")
+
+        if self.completed > self.total:
+            raise TaskValidationError("Le nombre de tâches complétées ne peut pas dépasser le total.")
+
+        # Calcul automatique ou forçage des règles métier garanties
+        if self.total == 0:
+            self.percentage = 0
+            self.is_all_completed = False
+        else:
+            self.percentage = round((self.completed / self.total) * 100)
+            self.is_all_completed = (self.completed == self.total)
 
 
 class TaskManager:
@@ -185,3 +224,16 @@ class TaskManager:
             self._write_tasks(tasks)
 
         return updated_task
+
+    def get_progress(self) -> ProgressStats:
+        """
+        Calcule les statistiques consolidées d'avancement des tâches du jour.
+
+        Returns:
+            Une instance de ProgressStats contenant total, completed, percentage et is_all_completed.
+        """
+        tasks = self.get_all_tasks()
+        total = len(tasks)
+        completed = sum(1 for t in tasks if t.completed)
+        return ProgressStats(total=total, completed=completed)
+

@@ -30,10 +30,11 @@ def get_task_manager() -> TaskManager:
 def index():
     """
     Affiche la page d'accueil de l'application.
-    Injecte la liste ordonnée des tâches et une citation canine adaptée.
+    Injecte la liste ordonnée des tâches, la progression du jour et une citation canine adaptée.
     """
     manager = get_task_manager()
     tasks = manager.get_all_tasks()
+    progress = manager.get_progress()
 
     # Si aucune tâche n'est encore enregistrée, afficher le message d'accueil initial
     if not tasks:
@@ -41,7 +42,7 @@ def index():
     else:
         quote = get_random_quote()
 
-    return render_template("index.html", tasks=tasks, quote=quote)
+    return render_template("index.html", tasks=tasks, quote=quote, progress=progress)
 
 
 @bp.route("/tasks", methods=["POST"])
