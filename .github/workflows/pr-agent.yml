@@ -1,0 +1,32 @@
+name: PR Agent
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+
+jobs:
+  pr_agent_job:
+    # Ignore les bots ; pour les commentaires, seuls les collaborateurs peuvent déclencher l'agent.
+    if: >-
+      ${{ github.event.sender.type != 'Bot' &&
+      (github.event_name == 'pull_request' ||
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) }}
+    runs-on: ubuntu-latest
+    # Permissions minimales : commentaires et description de PR, code en lecture seule.
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+    steps:
+      - name: PR Agent
+        uses: the-pr-agent/pr-agent@v0.42.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          config.model: "gemini/gemini-3.5-flash-lite"
+          config.fallback_models: '["gemini/gemini-3.5-flash-lite"]'
+          github_action_config.auto_describe: "true"
+          github_action_config.auto_review: "true"
+          github_action_config.auto_improve: "true"
