@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tâches du Jour - Planificateur bienveillant{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- En-tête principal avec identité canine chaleureuse -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-logo">
+                    <!-- Illustration canine d'en-tête -->
+                    <img src="{{ url_for('static', filename='images/dogs/dog-happy.svg') }}" 
+                         alt="Chien amical" 
+                         class="dog-avatar">
+                </div>
+                <div class="header-text">
+                    <h1>Tâches du Jour</h1>
+                    <p class="subtitle">Planifie ta journée en douceur avec ton fidèle compagnon</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Messages flash (erreurs de validation, alertes) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <section class="flash-messages" aria-label="Messages du système">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}" role="alert">
+                            <span class="flash-icon">🐾</span>
+                            <span class="flash-text">{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </section>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Contenu principal -->
+        <main class="app-main">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Pied de page didactique -->
+        <footer class="app-footer">
+            <p>Projet pédagogique Tâches du Jour • Développé avec HTML, CSS &amp; Python Flask</p>
+        </footer>
+    </div>
+</body>
+</html>

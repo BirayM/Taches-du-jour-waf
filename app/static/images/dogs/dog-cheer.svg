@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <radialGradient id="cheerBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FEF3C7"/>
+      <stop offset="100%" stop-color="#FCD34D"/>
+    </radialGradient>
+  </defs>
+  <!-- Fond solaire éclatant -->
+  <circle cx="60" cy="60" r="56" fill="url(#cheerBg)" stroke="#D97706" stroke-width="3"/>
+  
+  <!-- Étoiles de célébration -->
+  <polygon points="20,25 23,32 30,32 25,37 27,44 20,40 13,44 15,37 10,32 17,32" fill="#F59E0B"/>
+  <polygon points="100,20 102,25 107,25 103,29 105,34 100,31 95,34 97,29 93,25 98,25" fill="#F59E0B"/>
+  
+  <!-- Oreilles redressées avec enthousiasme -->
+  <path d="M 32 35 C 20 15, 30 50, 40 45 Z" fill="#9A3412"/>
+  <path d="M 88 35 C 100 15, 90 50, 80 45 Z" fill="#9A3412"/>
+  
+  <!-- Tête -->
+  <ellipse cx="60" cy="62" rx="32" ry="28" fill="#F97316"/>
+  <ellipse cx="60" cy="65" rx="26" ry="22" fill="#FB923C"/>
+  
+  <!-- Yeux plissés de joie -->
+  <path d="M 42 56 Q 48 48 54 56" fill="none" stroke="#292524" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 66 56 Q 72 48 78 56" fill="none" stroke="#292524" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Museau -->
+  <ellipse cx="60" cy="74" rx="15" ry="11" fill="#FEF3C7"/>
+  <ellipse cx="60" cy="70" rx="6" ry="4" fill="#292524"/>
+  
+  <!-- Grand sourire victorieux -->
+  <path d="M 52 76 Q 60 88 68 76" fill="#F43F5E" stroke="#292524" stroke-width="2"/>
+  
+  <!-- Pattes levées de joie -->
+  <ellipse cx="34" cy="85" rx="8" ry="12" fill="#EA580C" transform="rotate(-20 34 85)"/>
+  <ellipse cx="86" cy="85" rx="8" ry="12" fill="#EA580C" transform="rotate(20 86 85)"/>
+</svg>
