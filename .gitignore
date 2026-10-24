@@ -53,3 +53,4 @@ Thumbs.db
 data/*.json
 data/*.json
 # Données locales de l'application (Constitution, principe VI)
+.specify/workflows/runs/
