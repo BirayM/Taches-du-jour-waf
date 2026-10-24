@@ -1,0 +1,85 @@
+schema_version: "1.0"
+workflow:
+  id: "sdd-realisation"
+  name: "SDD : réalisation (Phase 2)"
+  version: "0.1.0"
+  author: "equipe-dev"
+  description: "Implement, tests déterministes avec au plus 2 corrections, puis Converge. Échoue si les tests restent rouges."
+
+requires:
+  speckit_version: ">=0.7.2"
+  integrations:
+    any: ["gemini"]
+
+inputs:
+  integration:
+    type: string
+    default: "gemini"
+    enum: ["gemini"]
+    prompt: "Agent de codage à utiliser"
+  test_cmd:
+    type: string
+    default: "python -m pytest -q"
+    enum: ["python -m pytest -q", ".venv/bin/python -m pytest -q"]
+    prompt: "Commande de tests"
+
+steps:
+  - id: implement
+    command: speckit.implement
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "Implémente toutes les tâches de tasks.md dans l'ordre, tests avant le code correspondant. Respecte la constitution du projet."
+
+  - id: verif_1
+    type: shell
+    run: "mkdir -p reports && {{ inputs.test_cmd }} > reports/test-report.txt 2>&1; echo PYTEST_EXIT=$?"
+
+  - id: correction_1
+    type: if
+    condition: "{{ steps.verif_1.output.stdout | contains('PYTEST_EXIT=0') }}"
+    then:
+      - id: ok_1
+        type: shell
+        run: "echo Tests au vert"
+    else:
+      - id: fix_1
+        command: speckit.implement
+        integration: "{{ inputs.integration }}"
+        input:
+          args: "Les tests échouent. Lis reports/test-report.txt, identifie la cause, corrige le code ou les tests concernés, sans ajouter de fonctionnalité hors spec."
+
+  - id: verif_2
+    type: shell
+    run: "mkdir -p reports && {{ inputs.test_cmd }} > reports/test-report.txt 2>&1; echo PYTEST_EXIT=$?"
+
+  - id: correction_2
+    type: if
+    condition: "{{ steps.verif_2.output.stdout | contains('PYTEST_EXIT=0') }}"
+    then:
+      - id: ok_2
+        type: shell
+        run: "echo Tests au vert"
+    else:
+      - id: fix_2
+        command: speckit.implement
+        integration: "{{ inputs.integration }}"
+        input:
+          args: "Les tests échouent encore. Lis reports/test-report.txt, identifie la cause, corrige le code ou les tests concernés, sans ajouter de fonctionnalité hors spec."
+
+  - id: verif_3
+    type: shell
+    run: "mkdir -p reports && {{ inputs.test_cmd }} > reports/test-report.txt 2>&1; echo PYTEST_EXIT=$?"
+
+  - id: verdict
+    type: if
+    condition: "{{ steps.verif_3.output.stdout | contains('PYTEST_EXIT=0') }}"
+    then:
+      - id: converge
+        command: speckit.converge
+        integration: "{{ inputs.integration }}"
+        input:
+          args: "Vérifie la complétude de l'implémentation par rapport à spec.md, plan.md et tasks.md. Écris le rapport dans convergence.md à côté de spec.md."
+    else:
+      - id: echec
+        type: shell
+        run: "echo 'Tests en échec après 2 corrections : arrêt, intervention humaine.'; exit 1"

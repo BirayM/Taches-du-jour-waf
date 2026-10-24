@@ -1,0 +1,58 @@
+schema_version: "1.0"
+workflow:
+  id: "sdd-cadrage"
+  name: "SDD : cadrage (Phase 1)"
+  version: "0.1.0"
+  author: "equipe-dev"
+  description: "Specify, Clarify (questions seulement), Plan, Tasks, Analyze. Aucune gate : la validation humaine se fait sur la PR brouillon (GitHub) ou en relisant les fichiers (local)."
+
+requires:
+  speckit_version: ">=0.7.2"
+  integrations:
+    any: ["gemini"]
+
+inputs:
+  spec:
+    type: string
+    required: true
+    prompt: "Décris le besoin (corps de l'Issue ou demande locale)"
+  integration:
+    type: string
+    default: "gemini"
+    enum: ["gemini"]
+    prompt: "Agent de codage à utiliser"
+  stack:
+    type: string
+    default: "Même stack que l'existant, aucune nouvelle dépendance."
+    prompt: "Contraintes techniques pour le plan"
+
+steps:
+  - id: specify
+    command: speckit.specify
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.spec }}"
+
+  - id: clarify
+    command: speckit.clarify
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "MODE NON INTERACTIF : ne pose aucune question à l'écran et n'attends aucune réponse. Identifie au maximum 5 ambiguïtés importantes de la spec. Écris-les dans un fichier clarifications.md à côté de spec.md, sous forme de questions numérotées, chacune avec une réponse par défaut proposée et son impact. Ne modifie pas spec.md."
+
+  - id: plan
+    command: speckit.plan
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.stack }}"
+
+  - id: tasks
+    command: speckit.tasks
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "Place les tâches de tests avant les tâches de code correspondantes."
+
+  - id: analyze
+    command: speckit.analyze
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "Écris le rapport dans analyse.md à côté de spec.md et ne modifie aucun autre fichier."
