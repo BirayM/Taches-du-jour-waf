@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Enveloppe pour les exécutions sans humain : approuve automatiquement les outils.
+# À utiliser seulement dans un dossier de confiance et un environnement isolé.
+exec "$REAL_GEMINI" --approval-mode=yolo "$@"

@@ -2,9 +2,9 @@ schema_version: "1.0"
 workflow:
   id: "sdd-cadrage"
   name: "SDD : cadrage (Phase 1)"
-  version: "0.1.0"
+  version: "0.3.0"
   author: "equipe-dev"
-  description: "Specify, Clarify (questions seulement), Plan, Tasks, Analyze. Aucune gate : la validation humaine se fait sur la PR brouillon (GitHub) ou en relisant les fichiers (local)."
+  description: "Specify, Clarify (questions seulement), Plan, Tasks, Analyze. Le dossier de la feature est vérifié puis passé explicitement à chaque étape ; un contrôle final vérifie les fichiers sur le disque."
 
 requires:
   speckit_version: ">=0.7.2"
@@ -33,26 +33,34 @@ steps:
     input:
       args: "{{ inputs.spec }}"
 
+  - id: feature
+    type: shell
+    run: "d=$(python3 -c \"import json; print(json.load(open('.specify/feature.json'))['feature_directory'])\") && git status --porcelain -- \"$d\" | grep -q . && echo \"$d\" || { echo \"specify n'a produit aucun fichier pour la feature : $d\" >&2; exit 1; }"
+
   - id: clarify
     command: speckit.clarify
     integration: "{{ inputs.integration }}"
     input:
-      args: "MODE NON INTERACTIF : ne pose aucune question à l'écran et n'attends aucune réponse. Identifie au maximum 5 ambiguïtés importantes de la spec. Écris-les dans un fichier clarifications.md à côté de spec.md, sous forme de questions numérotées, chacune avec une réponse par défaut proposée et son impact. Ne modifie pas spec.md."
+      args: "La feature active est dans le dossier {{ steps.feature.output.stdout }} : travaille uniquement dans ce dossier. MODE NON INTERACTIF : ne pose aucune question à l'écran et n'attends aucune réponse. Identifie au maximum 5 ambiguïtés importantes de la spec. Écris-les dans clarifications.md dans ce dossier, sous forme de questions numérotées, chacune avec une réponse par défaut proposée et son impact. Ne modifie pas spec.md."
 
   - id: plan
     command: speckit.plan
     integration: "{{ inputs.integration }}"
     input:
-      args: "{{ inputs.stack }}"
+      args: "La feature active est dans le dossier {{ steps.feature.output.stdout }} : travaille uniquement dans ce dossier. {{ inputs.stack }}"
 
   - id: tasks
     command: speckit.tasks
     integration: "{{ inputs.integration }}"
     input:
-      args: "Place les tâches de tests avant les tâches de code correspondantes."
+      args: "La feature active est dans le dossier {{ steps.feature.output.stdout }} : travaille uniquement dans ce dossier. Place les tâches de tests avant les tâches de code correspondantes."
 
   - id: analyze
     command: speckit.analyze
     integration: "{{ inputs.integration }}"
     input:
-      args: "Écris le rapport dans analyse.md à côté de spec.md et ne modifie aucun autre fichier."
+      args: "La feature active est dans le dossier {{ steps.feature.output.stdout }} : analyse uniquement ce dossier. Écris le rapport dans analyse.md dans ce dossier et ne modifie aucun autre fichier."
+
+  - id: verifier
+    type: shell
+    run: "d=$(python3 -c \"import json; print(json.load(open('.specify/feature.json'))['feature_directory'])\") && for f in spec.md clarifications.md plan.md tasks.md analyse.md; do test -s \"$d/$f\" || { echo \"Fichier manquant ou vide : $d/$f\"; exit 1; }; done && echo \"Cadrage complet : $d\""
