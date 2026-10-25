@@ -100,9 +100,29 @@
                         </form>
                         <span class="task-title">{{ task.title }}</span>
                     </div>
-                    <span class="task-badge {% if task.completed %}badge-done{% else %}badge-pending{% endif %}">
-                        {% if task.completed %}Terminée 🎉{% else %}À faire 🐾{% endif %}
-                    </span>
+
+                    <div class="task-actions">
+                        <span class="task-badge {% if task.completed %}badge-done{% else %}badge-pending{% endif %}">
+                            {% if task.completed %}Terminée 🎉{% else %}À faire 🐾{% endif %}
+                        </span>
+
+                        <!-- Formulaire de suppression individuel (POST pour sécuriser l'action destructrice) -->
+                        <form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST" class="delete-form">
+                            <!--
+                                Bouton de suppression accessible :
+                                - aria-label personnalisé : vocalise l'intitulé exact de la tâche pour les lecteurs d'écran.
+                                - title : infobulle visuelle pour les utilisateurs à la souris.
+                                - aria-hidden="true" sur l'émoji : évite la redondance d'annonce vocale.
+                                - Toujours actif (non désactivé) pour permettre la suppression même si la tâche est terminée.
+                            -->
+                            <button type="submit" 
+                                    class="btn-delete" 
+                                    aria-label="Supprimer la tâche : {{ task.title }}"
+                                    title="Supprimer la tâche : {{ task.title }}">
+                                <span class="delete-icon" aria-hidden="true">🗑️</span>
+                            </button>
+                        </form>
+                    </div>
                 </li>
             {% endfor %}
         </ul>

@@ -2,9 +2,9 @@ schema_version: "1.0"
 workflow:
   id: "sdd-realisation"
   name: "SDD : réalisation (Phase 2)"
-  version: "0.1.0"
+  version: "0.2.0"
   author: "equipe-dev"
-  description: "Implement, tests déterministes avec au plus 2 corrections, puis Converge. Échoue si les tests restent rouges."
+  description: "Implement, tests déterministes avec au plus 2 corrections, puis Converge. Le dossier de la feature est passé explicitement, et l'exécution échoue si l'agent n'écrit rien ou si les tests restent rouges."
 
 requires:
   speckit_version: ">=0.7.2"
@@ -24,11 +24,19 @@ inputs:
     prompt: "Commande de tests"
 
 steps:
+  - id: feature
+    type: shell
+    run: "d=$(python3 -c \"import json; print(json.load(open('.specify/feature.json'))['feature_directory'])\") && test -s \"$d/tasks.md\" && echo \"$d\" || { echo \"tasks.md introuvable pour la feature : $d\" >&2; exit 1; }"
+
   - id: implement
     command: speckit.implement
     integration: "{{ inputs.integration }}"
     input:
-      args: "Implémente toutes les tâches de tasks.md dans l'ordre, tests avant le code correspondant. Respecte la constitution du projet."
+      args: "La feature active est dans le dossier {{ steps.feature.output.stdout }} : travaille uniquement dans ce dossier pour la spec, le plan et les tâches. Implémente toutes les tâches de tasks.md dans l'ordre, tests avant le code correspondant, et coche chaque tâche terminée. Respecte la constitution du projet."
+
+  - id: controle_ecriture
+    type: shell
+    run: "git status --porcelain | grep -Ev '^.. (specs|reports|.specify)/' | grep -q . && echo 'Du code a été écrit' || { echo \"L'agent n'a modifié aucun fichier de code\" >&2; exit 1; }"
 
   - id: verif_1
     type: shell
@@ -46,7 +54,7 @@ steps:
         command: speckit.implement
         integration: "{{ inputs.integration }}"
         input:
-          args: "Les tests échouent. Lis reports/test-report.txt, identifie la cause, corrige le code ou les tests concernés, sans ajouter de fonctionnalité hors spec."
+          args: "La feature active est dans le dossier {{ steps.feature.output.stdout }}. Les tests échouent. Lis reports/test-report.txt, identifie la cause, corrige le code ou les tests concernés, sans ajouter de fonctionnalité hors spec."
 
   - id: verif_2
     type: shell
@@ -64,7 +72,7 @@ steps:
         command: speckit.implement
         integration: "{{ inputs.integration }}"
         input:
-          args: "Les tests échouent encore. Lis reports/test-report.txt, identifie la cause, corrige le code ou les tests concernés, sans ajouter de fonctionnalité hors spec."
+          args: "La feature active est dans le dossier {{ steps.feature.output.stdout }}. Les tests échouent encore. Lis reports/test-report.txt, identifie la cause, corrige le code ou les tests concernés, sans ajouter de fonctionnalité hors spec."
 
   - id: verif_3
     type: shell
@@ -78,8 +86,12 @@ steps:
         command: speckit.converge
         integration: "{{ inputs.integration }}"
         input:
-          args: "Vérifie la complétude de l'implémentation par rapport à spec.md, plan.md et tasks.md. Écris le rapport dans convergence.md à côté de spec.md."
+          args: "La feature active est dans le dossier {{ steps.feature.output.stdout }} : analyse uniquement ce dossier. Vérifie la complétude de l'implémentation par rapport à spec.md, plan.md et tasks.md. Écris le rapport dans convergence.md dans ce dossier."
     else:
       - id: echec
         type: shell
         run: "echo 'Tests en échec après 2 corrections : arrêt, intervention humaine.'; exit 1"
+
+  - id: bilan
+    type: shell
+    run: "d=$(python3 -c \"import json; print(json.load(open('.specify/feature.json'))['feature_directory'])\"); echo \"Tâches cochées : $(grep -c '^- \\[[xX]\\] T[0-9]' \"$d/tasks.md\") ; restantes : $(grep -c '^- \\[ \\] T[0-9]' \"$d/tasks.md\")\""

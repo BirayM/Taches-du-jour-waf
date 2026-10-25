@@ -8,6 +8,7 @@ Routes disponibles :
 - GET / : Affiche la page principale (formulaire, liste des tâches, citation).
 - POST /tasks : Ajoute une nouvelle tâche et redirige vers / (PRG).
 - POST /tasks/<task_id>/complete : Marque une tâche comme terminée et redirige vers /.
+- POST /tasks/<task_id>/delete : Supprime définitivement une tâche et redirige vers / (PRG).
 """
 
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
@@ -76,3 +77,22 @@ def complete_task(task_id: str):
     manager = get_task_manager()
     manager.mark_completed(task_id)
     return redirect(url_for("main.index"))
+
+
+@bp.route("/tasks/<task_id>/delete", methods=["POST"])
+def delete_task(task_id: str):
+    """
+    Supprime définitivement la tâche spécifiée par son identifiant unique.
+
+    Patron Post/Redirect/Get (PRG) & Idempotence :
+    - Restreint strictement à la méthode POST (methods=["POST"]). Les requêtes GET
+      sont automatiquement rejetées avec une erreur HTTP 405 Method Not Allowed.
+    - Supprime la tâche de manière synchrone via TaskManager.delete_task().
+    - Redirige en HTTP 302 vers 'main.index', que la tâche ait été trouvée ou non
+      (résilience face aux identifiants inexistants et absence de crash 500).
+    - Aucune notification flash superflue n'est émise.
+    """
+    manager = get_task_manager()
+    manager.delete_task(task_id)
+    return redirect(url_for("main.index"))
+

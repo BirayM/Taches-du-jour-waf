@@ -120,6 +120,141 @@ def test_task_manager_get_all_ordered(temp_storage_path):
 
 
 # ==============================================================================
+# Tests pour Feature 004 : Suppression de Tâche Individuelle (Foundational)
+# ==============================================================================
+
+def test_task_manager_delete_task_success(temp_storage_path):
+    """
+    Vérifie la suppression unitaire d'une tâche avec sérialisation JSON immédiate
+    et intégrité des tâches restantes (T003).
+    """
+    manager1 = TaskManager(storage_path=temp_storage_path)
+    t1 = manager1.add_task("Première tâche")
+    t2 = manager1.add_task("Deuxième tâche à supprimer")
+    t3 = manager1.add_task("Troisième tâche")
+
+    assert len(manager1.get_all_tasks()) == 3
+
+    # Suppression physique de t2
+    success = manager1.delete_task(t2.id)
+    assert success is True
+
+    # Vérification après réinitialisation / relecture directe depuis le disque
+    manager2 = TaskManager(storage_path=temp_storage_path)
+    remaining_tasks = manager2.get_all_tasks()
+    assert len(remaining_tasks) == 2
+    assert [t.id for t in remaining_tasks] == [t1.id, t3.id]
+    assert [t.title for t in remaining_tasks] == ["Première tâche", "Troisième tâche"]
+    assert manager2.get_task_by_id(t2.id) is None
+
+
+@pytest.mark.parametrize("invalid_id", [
+    "inconnu-404",
+    "",
+    "already-deleted-id",
+])
+def test_task_manager_delete_task_nonexistent_returns_false(task_manager, invalid_id):
+    """
+    Vérifie que supprimer un identifiant inexistant, vide ou déjà supprimé
+    retourne False sans lever d'exception (T003).
+    """
+    task_manager.add_task("Tâche active")
+    initial_count = len(task_manager.get_all_tasks())
+
+    result = task_manager.delete_task(invalid_id)
+    assert result is False
+    assert len(task_manager.get_all_tasks()) == initial_count
+
+
+def test_task_manager_delete_task_no_write_on_missing(temp_storage_path):
+    """
+    Vérifie qu'aucun accès en écriture n'est effectué sur le fichier
+    lorsqu'un ID inexistant est fourni (T003 / data-model.md).
+    """
+    manager = TaskManager(storage_path=temp_storage_path)
+    manager.add_task("Tâche témoin")
+    
+    file_path = manager.storage_path
+    initial_mtime = file_path.stat().st_mtime_ns
+
+    # Tentative de suppression d'un ID inexistant
+    res = manager.delete_task("inexistant-id")
+    assert res is False
+    assert file_path.stat().st_mtime_ns == initial_mtime
+
+
+def test_task_manager_progress_stats_post_delete(task_manager):
+    """
+    Vérifie le recalcul dynamique de ProgressStats suite à la suppression
+    d'une tâche non terminée ou terminée (T005 / US1).
+    """
+    # 3 tâches : t1 terminée, t2 et t3 à faire -> 1/3 (33%)
+    t1 = task_manager.add_task("Tâche 1")
+    t2 = task_manager.add_task("Tâche 2")
+    t3 = task_manager.add_task("Tâche 3")
+    task_manager.mark_completed(t1.id)
+
+    stats_init = task_manager.get_progress()
+    assert stats_init.total == 3
+    assert stats_init.completed == 1
+    assert stats_init.percentage == 33
+    assert stats_init.is_all_completed is False
+
+    # Suppression d'une tâche non terminée (t2) -> 1 sur 2 (50%)
+    task_manager.delete_task(t2.id)
+    stats_after_t2 = task_manager.get_progress()
+    assert stats_after_t2.total == 2
+    assert stats_after_t2.completed == 1
+    assert stats_after_t2.percentage == 50
+    assert stats_after_t2.is_all_completed is False
+
+    # Suppression de la tâche terminée (t1) -> 0 sur 1 (0%)
+    task_manager.delete_task(t1.id)
+    stats_after_t1 = task_manager.get_progress()
+    assert stats_after_t1.total == 1
+    assert stats_after_t1.completed == 0
+    assert stats_after_t1.percentage == 0
+    assert stats_after_t1.is_all_completed is False
+
+    # Complétion de la tâche restante t3 -> 1 sur 1 (100%)
+    task_manager.mark_completed(t3.id)
+    stats_completed = task_manager.get_progress()
+    assert stats_completed.total == 1
+    assert stats_completed.completed == 1
+    assert stats_completed.percentage == 100
+    assert stats_completed.is_all_completed is True
+
+
+def test_task_manager_progress_stats_reset_on_delete_last_task(task_manager):
+    """
+    Vérifie la remise à zéro complète des statistiques ProgressStats
+    lors de la suppression de la toute dernière tâche restante (T011 / US2).
+    """
+    # Cas 1 : Suppression de la dernière tâche qui n'était pas complétée
+    task1 = task_manager.add_task("Unique tâche à faire")
+    assert task_manager.get_progress().total == 1
+
+    task_manager.delete_task(task1.id)
+    stats1 = task_manager.get_progress()
+    assert stats1.total == 0
+    assert stats1.completed == 0
+    assert stats1.percentage == 0
+    assert stats1.is_all_completed is False
+
+    # Cas 2 : Suppression de la dernière tâche qui était complétée (100%)
+    task2 = task_manager.add_task("Unique tâche terminée")
+    task_manager.mark_completed(task2.id)
+    assert task_manager.get_progress().is_all_completed is True
+
+    task_manager.delete_task(task2.id)
+    stats2 = task_manager.get_progress()
+    assert stats2.total == 0
+    assert stats2.completed == 0
+    assert stats2.percentage == 0
+    assert stats2.is_all_completed is False
+
+
+# ==============================================================================
 # Tests pour Feature 002 : Suivi de la Progression Quotidienne
 # ==============================================================================
 
