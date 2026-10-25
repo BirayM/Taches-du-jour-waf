@@ -30,8 +30,8 @@ description: "Task list for Suppression de Tâche Individuelle implementation"
 
 **Purpose**: Validation de l'environnement de développement et vérification des ressources statiques requises.
 
-- [ ] T001 Vérifier l'environnement virtuel et l'exécution initiale de la suite de tests existante avec `.venv/bin/pytest`
-- [ ] T002 [P] Vérifier la présence des illustrations vectorielles canines requises dans `app/static/images/dogs/dog-resting.svg` et `app/static/images/dogs/dog-cheer.svg`
+- [X] T001 Vérifier l'environnement virtuel et l'exécution initiale de la suite de tests existante avec `.venv/bin/pytest`
+- [X] T002 [P] Vérifier la présence des illustrations vectorielles canines requises dans `app/static/images/dogs/dog-resting.svg` et `app/static/images/dogs/dog-cheer.svg`
 
 ---
 
@@ -41,8 +41,8 @@ description: "Task list for Suppression de Tâche Individuelle implementation"
 
 **⚠️ CRITICAL**: Les user stories dépendent de ce socle fondamental de persistance.
 
-- [ ] T003 [P] Écrire les tests unitaires pour la suppression de tâche dans `tests/test_models.py` (vérification de la suppression physique dans le fichier JSON, intégrité des tâches restantes, et retour `False` sans exception pour un identifiant inexistant)
-- [ ] T004 Valider et documenter l'implémentation de la méthode `delete_task(task_id: str) -> bool` au sein de `TaskManager` dans `app/models.py` conformément aux contraintes de `data-model.md` : argument `task_id` ("Identifiant unique de la tâche à supprimer"), retour `bool` ("True si la tâche a été trouvée et supprimée, False si elle n'existait pas"), "La tâche est retirée de la liste en mémoire. La nouvelle liste est sérialisée dans data/tasks.json avec indentation standard. La fonction retourne True", "Si task_id ne correspond à aucune tâche (inconnu, déjà supprimé, chaîne vide) : Aucun accès en écriture n'est effectué sur le fichier de persistance. La fonction retourne False sans lever d'exception", et cycle de destruction physique ("retirée sans archivage intermédiaire, sans corbeille (recycle bin) et sans possibilité d'annulation (undo)")
+- [X] T003 [P] Écrire les tests unitaires pour la suppression de tâche dans `tests/test_models.py` (vérification de la suppression physique dans le fichier JSON, intégrité des tâches restantes, et retour `False` sans exception pour un identifiant inexistant)
+- [X] T004 Valider et documenter l'implémentation de la méthode `delete_task(task_id: str) -> bool` au sein de `TaskManager` dans `app/models.py` conformément aux contraintes de `data-model.md` : argument `task_id` ("Identifiant unique de la tâche à supprimer"), retour `bool` ("True si la tâche a été trouvée et supprimée, False si elle n'existait pas"), "La tâche est retirée de la liste en mémoire. La nouvelle liste est sérialisée dans data/tasks.json avec indentation standard. La fonction retourne True", "Si task_id ne correspond à aucune tâche (inconnu, déjà supprimé, chaîne vide) : Aucun accès en écriture n'est effectué sur le fichier de persistance. La fonction retourne False sans lever d'exception", et cycle de destruction physique ("retirée sans archivage intermédiaire, sans corbeille (recycle bin) et sans possibilité d'annulation (undo)")
 
 **Checkpoint**: Persistance validée au niveau modèle avec tests au vert - l'implémentation des user stories peut débuter.
 
@@ -58,15 +58,15 @@ description: "Task list for Suppression de Tâche Individuelle implementation"
 
 > **NOTE: Écrire ces tests en premier et vérifier qu'ils échouent avant l'implémentation**
 
-- [ ] T005 [P] [US1] Écrire les tests unitaires de recalcul des statistiques de progression `ProgressStats` post-suppression dans `tests/test_models.py` selon `data-model.md` : `total` ("décrémenté de 1 si la suppression réussit"), `completed` ("décrémenté de 1 si la tâche supprimée était terminée"), `percentage` ("round((completed / total) * 100) si total > 0, sinon 0"), et `is_all_completed` ("True si et seulement si total > 0 et completed == total")
-- [ ] T006 [P] [US1] Écrire les tests de contrat et d'intégration HTTP pour la route `POST /tasks/<task_id>/delete` dans `tests/test_routes.py` (vérification de la redirection 302 Found avec en-tête `Location: /` selon le patron PRG, retrait effectif de la tâche dans le rendu HTML, actualisation du compteur "1 sur 2" et de la jauge à 50%, résilience face à un identifiant inconnu redirigeant en 302 sans erreur 500, et rejet des requêtes GET par le code HTTP 405 Method Not Allowed)
-- [ ] T007 [P] [US1] Écrire le test d'intégration HTTP pour la transition vers 100% de complétion lors de la suppression d'une tâche non terminée dans `tests/test_routes.py` (vérification de l'activation de `.celebration-card` et de l'illustration `dog-cheer.svg` lorsque toutes les tâches restantes sont terminées)
+- [X] T005 [P] [US1] Écrire les tests unitaires de recalcul des statistiques de progression `ProgressStats` post-suppression dans `tests/test_models.py` selon `data-model.md` : `total` ("décrémenté de 1 si la suppression réussit"), `completed` ("décrémenté de 1 si la tâche supprimée était terminée"), `percentage` ("round((completed / total) * 100) si total > 0, sinon 0"), et `is_all_completed` ("True si et seulement si total > 0 et completed == total")
+- [X] T006 [P] [US1] Écrire les tests de contrat et d'intégration HTTP pour la route `POST /tasks/<task_id>/delete` dans `tests/test_routes.py` (vérification de la redirection 302 Found avec en-tête `Location: /` selon le patron PRG, retrait effectif de la tâche dans le rendu HTML, actualisation du compteur "1 sur 2" et de la jauge à 50%, résilience face à un identifiant inconnu redirigeant en 302 sans erreur 500, et rejet des requêtes GET par le code HTTP 405 Method Not Allowed)
+- [X] T007 [P] [US1] Écrire le test d'intégration HTTP pour la transition vers 100% de complétion lors de la suppression d'une tâche non terminée dans `tests/test_routes.py` (vérification de l'activation de `.celebration-card` et de l'illustration `dog-cheer.svg` lorsque toutes les tâches restantes sont terminées)
 
 ### Implementation pour User Story 1
 
-- [ ] T008 [US1] Implémenter le point d'accès HTTP `POST /tasks/<task_id>/delete` dans `app/routes.py` restreint strictement à la méthode POST (`methods=["POST"]`), orchestrant l'appel à `manager.delete_task(task_id)` et la redirection PRG `return redirect(url_for("main.index"))` sans message flash superflu
-- [ ] T009 [US1] Intégrer le formulaire de suppression HTML5 `<form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST" class="delete-form">` avec son bouton `<button type="submit" class="btn-delete">` au sein de chaque élément `<li class="task-item">` dans `app/templates/index.html`
-- [ ] T010 [P] [US1] Ajouter les déclarations CSS pour le groupe d'actions `.task-actions`, le formulaire `.delete-form` et le bouton `.btn-delete` (disposition flexbox, réinitialisation des styles de bouton natif, transition fluide et survol `:hover` en rouge clair) dans `app/static/css/style.css`
+- [X] T008 [US1] Implémenter le point d'accès HTTP `POST /tasks/<task_id>/delete` dans `app/routes.py` restreint strictement à la méthode POST (`methods=["POST"]`), orchestrant l'appel à `manager.delete_task(task_id)` et la redirection PRG `return redirect(url_for("main.index"))` sans message flash superflu
+- [X] T009 [US1] Intégrer le formulaire de suppression HTML5 `<form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST" class="delete-form">` avec son bouton `<button type="submit" class="btn-delete">` au sein de chaque élément `<li class="task-item">` dans `app/templates/index.html`
+- [X] T010 [P] [US1] Ajouter les déclarations CSS pour le groupe d'actions `.task-actions`, le formulaire `.delete-form` et le bouton `.btn-delete` (disposition flexbox, réinitialisation des styles de bouton natif, transition fluide et survol `:hover` en rouge clair) dans `app/static/css/style.css`
 
 **Checkpoint**: User Story 1 pleinement fonctionnelle et testable de façon autonome (MVP atteint).
 
@@ -82,12 +82,12 @@ description: "Task list for Suppression de Tâche Individuelle implementation"
 
 > **NOTE: Écrire ces tests en premier et vérifier qu'ils échouent avant l'implémentation**
 
-- [ ] T011 [P] [US2] Écrire le test unitaire pour la remise à zéro de `ProgressStats` lors de la suppression de la dernière tâche dans `tests/test_models.py` (vérification que `total=0`, `completed=0`, `percentage=0`, et `is_all_completed=False`)
-- [ ] T012 [P] [US2] Écrire le test d'intégration HTTP pour la suppression de la dernière tâche dans `tests/test_routes.py` (vérification de la présence de `dog-resting.svg`, du titre `Aucune tâche pour l'instant !`, de la citation `WELCOME_QUOTE`, et de l'absence complète des éléments `.progress-section` et `.celebration-card`)
+- [X] T011 [P] [US2] Écrire le test unitaire pour la remise à zéro de `ProgressStats` lors de la suppression de la dernière tâche dans `tests/test_models.py` (vérification que `total=0`, `completed=0`, `percentage=0`, et `is_all_completed=False`)
+- [X] T012 [P] [US2] Écrire le test d'intégration HTTP pour la suppression de la dernière tâche dans `tests/test_routes.py` (vérification de la présence de `dog-resting.svg`, du titre `Aucune tâche pour l'instant !`, de la citation `WELCOME_QUOTE`, et de l'absence complète des éléments `.progress-section` et `.celebration-card`)
 
 ### Implementation pour User Story 2
 
-- [ ] T013 [US2] Adapter et sécuriser les conditions d'affichage Jinja2 dans `app/templates/index.html` pour garantir le masquage immédiat de `.progress-section` (`{% if progress and progress.total > 0 %}`) et la réapparition fluide du bloc `.empty-state` avec `dog-resting.svg` et la citation d'accueil lorsque `tasks` est vide suite à une suppression
+- [X] T013 [US2] Adapter et sécuriser les conditions d'affichage Jinja2 dans `app/templates/index.html` pour garantir le masquage immédiat de `.progress-section` (`{% if progress and progress.total > 0 %}`) et la réapparition fluide du bloc `.empty-state` avec `dog-resting.svg` et la citation d'accueil lorsque `tasks` est vide suite à une suppression
 
 **Checkpoint**: User Stories 1 et 2 intégrées et fonctionnelles sans état intermédiaire incohérent.
 
@@ -103,13 +103,13 @@ description: "Task list for Suppression de Tâche Individuelle implementation"
 
 > **NOTE: Écrire ces tests en premier et vérifier qu'ils échouent avant l'implémentation**
 
-- [ ] T014 [P] [US3] Écrire les tests d'intégration HTTP vérifiant la présence et la conformité des attributs d'accessibilité du bouton de suppression dans `tests/test_routes.py` (vérification de `aria-label="Supprimer la tâche : {titre}"`, de l'infobulle `title="Supprimer la tâche : {titre}"`, et de la balise `<span class="delete-icon" aria-hidden="true">🗑️</span>`)
-- [ ] T015 [P] [US3] Écrire le test d'intégration HTTP vérifiant que le bouton de suppression reste actif sans attribut `disabled` sur une tâche déjà complétée (`task.completed == True`, classe `.is-completed`) et permet sa suppression avec recalcul exact du ratio dans `tests/test_routes.py`
+- [X] T014 [P] [US3] Écrire les tests d'intégration HTTP vérifiant la présence et la conformité des attributs d'accessibilité du bouton de suppression dans `tests/test_routes.py` (vérification de `aria-label="Supprimer la tâche : {titre}"`, de l'infobulle `title="Supprimer la tâche : {titre}"`, et de la balise `<span class="delete-icon" aria-hidden="true">🗑️</span>`)
+- [X] T015 [P] [US3] Écrire le test d'intégration HTTP vérifiant que le bouton de suppression reste actif sans attribut `disabled` sur une tâche déjà complétée (`task.completed == True`, classe `.is-completed`) et permet sa suppression avec recalcul exact du ratio dans `tests/test_routes.py`
 
 ### Implementation pour User Story 3
 
-- [ ] T016 [US3] Mettre en conformité les attributs d'accessibilité du bouton de suppression dans `app/templates/index.html` selon `data-model.md` : liaison dynamique avec `task.title` ("Intitulé descriptif (1 à 200 caractères), utilisé pour composer le libellé accessible aria-label"), attributs `aria-label="Supprimer la tâche : {{ task.title }}"` et `title="Supprimer la tâche : {{ task.title }}"`, icône masquée aux technologies d'assistance via `<span class="delete-icon" aria-hidden="true">🗑️</span>`, et absence stricte d'attribut `disabled` quel que soit l'état `completed`
-- [ ] T017 [P] [US3] Ajouter les règles CSS de focalisation accessible au clavier pour le bouton de suppression (`.btn-delete:focus-visible` avec contour visible `2px solid var(--color-primary, #4f46e5)` et décalage `outline-offset: 2px`) dans `app/static/css/style.css`
+- [X] T016 [US3] Mettre en conformité les attributs d'accessibilité du bouton de suppression dans `app/templates/index.html` selon `data-model.md` : liaison dynamique avec `task.title` ("Intitulé descriptif (1 à 200 caractères), utilisé pour composer le libellé accessible aria-label"), attributs `aria-label="Supprimer la tâche : {{ task.title }}"` et `title="Supprimer la tâche : {{ task.title }}"`, icône masquée aux technologies d'assistance via `<span class="delete-icon" aria-hidden="true">🗑️</span>`, et absence stricte d'attribut `disabled` quel que soit l'état `completed`
+- [X] T017 [P] [US3] Ajouter les règles CSS de focalisation accessible au clavier pour le bouton de suppression (`.btn-delete:focus-visible` avec contour visible `2px solid var(--color-primary, #4f46e5)` et décalage `outline-offset: 2px`) dans `app/static/css/style.css`
 
 **Checkpoint**: Toutes les User Stories (US1, US2, US3) sont complètes, accessibles et couvertes par les tests automatisés.
 
@@ -119,10 +119,10 @@ description: "Task list for Suppression de Tâche Individuelle implementation"
 
 **Purpose**: Qualité didactique du code, documentation pédagogique et validation exhaustive de la solution.
 
-- [ ] T018 [P] Ajouter des docstrings complètes (PEP 257) et des commentaires pédagogiques sur le patron PRG, l'idempotence et l'accessibilité WAI-ARIA dans `app/models.py`, `app/routes.py`, `app/templates/index.html` et `app/static/css/style.css`
-- [ ] T019 Exécuter l'intégralité de la suite de tests automatisés `pytest -v` via `.venv/bin/pytest` et confirmer un taux de réussite de 100%
-- [ ] T020 Dérouler manuellement l'ensemble des 6 scénarios de validation de bout en bout décrits dans `specs/004-delete-task/quickstart.md`
-- [ ] T021 [P] Mettre à jour la documentation du projet dans `README.md` pour documenter la suppression individuelle de tâche, la route `POST /tasks/<task_id>/delete` et les critères d'accessibilité associés
+- [X] T018 [P] Ajouter des docstrings complètes (PEP 257) et des commentaires pédagogiques sur le patron PRG, l'idempotence et l'accessibilité WAI-ARIA dans `app/models.py`, `app/routes.py`, `app/templates/index.html` et `app/static/css/style.css`
+- [X] T019 Exécuter l'intégralité de la suite de tests automatisés `pytest -v` via `.venv/bin/pytest` et confirmer un taux de réussite de 100%
+- [X] T020 Dérouler manuellement l'ensemble des 6 scénarios de validation de bout en bout décrits dans `specs/004-delete-task/quickstart.md`
+- [X] T021 [P] Mettre à jour la documentation du projet dans `README.md` pour documenter la suppression individuelle de tâche, la route `POST /tasks/<task_id>/delete` et les critères d'accessibilité associés
 
 ---
 

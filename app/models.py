@@ -229,6 +229,12 @@ class TaskManager:
         """
         Supprime définitivement une tâche du fichier de persistance via son identifiant unique.
 
+        Règles métier & Cycle de vie :
+        - Destruction physique directe : retrait sans corbeille ni archivage intermédiaire.
+        - Persistance synchrone : réécriture immédiate de data/tasks.json avec indentation.
+        - Idempotence & Résilience : si task_id est introuvable, vide ou déjà supprimé,
+          aucun accès en écriture n'est effectué et la méthode retourne False sans exception.
+
         Args:
             task_id: Identifiant unique de la tâche à supprimer.
 
@@ -239,10 +245,12 @@ class TaskManager:
         initial_count = len(tasks)
         tasks = [task for task in tasks if task.id != task_id]
 
+        # Si le nombre d'éléments a diminué, la tâche ciblée a bien été trouvée
         if len(tasks) < initial_count:
             self._write_tasks(tasks)
             return True
 
+        # Aucun accès en écriture n'est effectué si l'identifiant n'existait pas
         return False
 
     def get_progress(self) -> ProgressStats:

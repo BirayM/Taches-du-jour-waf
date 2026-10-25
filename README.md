@@ -23,17 +23,17 @@ Ce projet a été conçu selon des principes de gouvernance stricts (définis da
 taches-du-jour/
 ├── app/
 │   ├── __init__.py          # Fabrique applicative Flask (create_app)
-│   ├── models.py            # Modèle Task et gestionnaire de persistance JSON
-│   ├── routes.py            # Routes HTTP (GET /, POST /tasks, POST /tasks/<id>/complete)
+│   ├── models.py            # Modèle Task, ProgressStats et TaskManager (JSON)
+│   ├── routes.py            # Routes HTTP (GET /, POST /tasks, POST /tasks/<id>/complete, POST /tasks/<id>/delete)
 │   ├── quotes.py            # Collection de citations positives et canines
 │   ├── static/
 │   │   ├── css/
-│   │   │   └── style.css    # Styles CSS3 chaleureux et adaptatifs
+│   │   │   └── style.css    # Styles CSS3 chaleureux, adaptatifs et accessibles
 │   │   └── images/
 │   │       └── dogs/        # Illustrations vectorielles SVG locales
 │   └── templates/
 │       ├── base.html        # Gabarit HTML5 sémantique
-│       └── index.html       # Page principale (formulaire, liste, citation)
+│       └── index.html       # Page principale (formulaire, liste, citation, actions)
 ├── data/
 │   └── tasks.json           # Persistance locale automatique des tâches
 ├── tests/
@@ -88,6 +88,10 @@ Ouvrez votre navigateur sur : **[http://localhost:5000](http://localhost:5000)**
 
 - **Ajout en chaîne fluide** : Saisissez l'intitulé d'une tâche et validez (Entrée ou clic). Le formulaire se réinitialise instantanément pour vous permettre d'ajouter la mission suivante.
 - **Liste et suivi** : Consultez vos tâches ordonnées et cochez-les au fur et à mesure de votre progression.
+- **Suppression individuelle de tâche** : Supprimez définitivement n'importe quelle tâche de votre liste via son bouton d'action dédié (`POST /tasks/<task_id>/delete`) appliquant le patron Post/Redirect/Get (PRG).
+  - *Recalcul immédiat* : Le compteur de complétion et la jauge de progression s'ajustent instantanément.
+  - *Retour à l'état d'accueil* : Si vous supprimez la dernière tâche, l'application réaffiche de manière fluide l'écran d'accueil avec le chien au repos (`dog-resting.svg`).
+  - *Accessibilité numérique WAI-ARIA* : Chaque bouton de suppression propose un libellé accessible individualisé (`aria-label="Supprimer la tâche : {titre}"`), une infobulle `title`, un contour de focalisation visible pour la navigation au clavier (`Tab` + `Entrée`/`Espace`), et reste utilisable même sur les tâches terminées.
 - **Barre de progression en temps réel** : Visualisez d'un coup d'œil le décompte des tâches terminées sur le total et suivez votre avancement grâce à une jauge graphique animée et accessible (attributs WAI-ARIA natifs).
 - **Célébration festive de fin de journée** : Dès que 100 % de vos tâches sont terminées, une bannière festive exclusive avec un joyeux chiot célébrant votre victoire (`dog-cheer.svg`) s'affiche pour valoriser vos efforts !
 - **Persistance locale** : Vos tâches restent enregistrées dans `data/tasks.json` même si vous arrêtez le serveur.
