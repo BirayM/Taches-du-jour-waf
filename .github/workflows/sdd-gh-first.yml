@@ -101,6 +101,7 @@ jobs:
             "" \
             "**Validation humaine n°1** : relis les fichiers sous \`specs/\`, en particulier \`spec.md\` et \`clarifications.md\`." \
             "Pour répondre aux questions de clarification ou corriger la spec, modifie les fichiers directement sur cette branche." \
+            "**Ne fusionne pas cette PR avant la fin de l'implémentation** (elle recevra le code après le label \`sdd-approved\`)." \
             "Quand tout te convient, pose le label \`sdd-approved\` sur l'Issue pour lancer l'implémentation." \
             > /tmp/pr-body.md
           PR_URL="$(gh pr create --draft --base main --head "sdd/issue-${ISSUE_NUMBER}" \
@@ -150,12 +151,18 @@ jobs:
           uv tool install specify-cli --from "git+https://github.com/github/spec-kit.git@${SPECKIT_REF}"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Désigner la feature sans dépendre de feature.json
+      - name: Désigner la feature (d'après le commit de cadrage de l'Issue)
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          git fetch origin main
-          DIRS="$(git diff --name-only origin/main...HEAD -- specs | cut -d/ -f1-2 | sort -u)"
+          COMMIT="$(git log --format=%H -n1 --grep="^sdd: cadrage de l'Issue #${ISSUE_NUMBER}$")"
+          if [ -z "$COMMIT" ]; then
+            echo "Commit de cadrage de l'Issue #${ISSUE_NUMBER} introuvable sur la branche." >&2
+            exit 1
+          fi
+          DIRS="$(git show --name-only --format= "$COMMIT" | grep '^specs/' | cut -d/ -f1-2 | sort -u)"
           if [ "$(printf '%s\n' "$DIRS" | grep -c .)" -ne 1 ]; then
-            echo "Une seule feature attendue sous specs/, trouvé : $DIRS" >&2
+            echo "Une seule feature attendue dans le commit de cadrage, trouvé : $DIRS" >&2
             exit 1
           fi
           if ! printf '%s' "$DIRS" | grep -Eq '^specs/[0-9]{3}-[a-z0-9-]+$'; then
@@ -192,6 +199,21 @@ jobs:
             git commit -m "sdd: première version du code (Issue #${ISSUE_NUMBER})"
             git push origin "HEAD:refs/heads/sdd/issue-${ISSUE_NUMBER}"
             echo "pushed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: S'assurer qu'une PR brouillon est ouverte
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          BRANCH="sdd/issue-${ISSUE_NUMBER}"
+          EXISTING="$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url // empty')"
+          if [ -z "$EXISTING" ]; then
+            printf '%s\n' "PR brouillon recréée pour l'Issue #${ISSUE_NUMBER} : la PR précédente avait été fermée ou fusionnée avant l'implémentation." > /tmp/pr-body2.md
+            NEW="$(gh pr create --draft --base main --head "$BRANCH" --title "[SDD] Issue #${ISSUE_NUMBER} : première version du code" --body-file /tmp/pr-body2.md 2>/dev/null || true)"
+            if [ -n "$NEW" ]; then
+              gh issue comment "$ISSUE_NUMBER" --body "Nouvelle PR brouillon : ${NEW}"
+            fi
           fi
 
       - name: Rapport sur l'Issue
