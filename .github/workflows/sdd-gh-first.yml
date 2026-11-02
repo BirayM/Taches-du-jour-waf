@@ -11,7 +11,7 @@ concurrency:
 
 env:
   GEMINI_CLI_VERSION: "0.65.0"
-  SPECKIT_REF: "1.2.4.dev0"   # version affichée par `specify version`
+  SPECKIT_REF: "27d14e20c187c1f2916540ea201ecbdc9f8ed588"   # version affichée par `specify version`
 
 jobs:
   # ---------------------------------------------------------------------
@@ -32,7 +32,7 @@ jobs:
 
       - name: Vérifier la configuration
         run: |
-          if [ "$SPECKIT_REF" = "1.2.4.dev0" ]; then
+          if [ -z "$SPECKIT_REF" ]; then
             echo "Renseigne SPECKIT_REF (version de Spec Kit) en tête du workflow." >&2
             exit 1
           fi
@@ -129,7 +129,7 @@ jobs:
 
       - name: Vérifier la configuration
         run: |
-          if [ "$SPECKIT_REF" = "1.2.4.dev0" ]; then
+          if [ -z "$SPECKIT_REF" ]; then
             echo "Renseigne SPECKIT_REF (version de Spec Kit) en tête du workflow." >&2
             exit 1
           fi
