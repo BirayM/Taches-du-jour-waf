@@ -30,8 +30,8 @@ description: "Task list for Compte à Rebours de Fin de Journée implementation"
 
 **Purpose**: Validation de l'environnement de développement et initialisation de l'arborescence statique JavaScript.
 
-- [ ] T001 Vérifier l'environnement virtuel et l'exécution initiale de la suite de tests existante avec `.venv/bin/pytest` ou `pytest`
-- [ ] T002 [P] Créer le répertoire `app/static/js/` destiné à accueillir les scripts JavaScript Vanilla de l'application
+- [x] T001 Vérifier l'environnement virtuel et l'exécution initiale de la suite de tests existante avec `.venv/bin/pytest` ou `pytest`
+- [x] T002 [P] Créer le répertoire `app/static/js/` destiné à accueillir les scripts JavaScript Vanilla de l'application
 
 ---
 
@@ -45,12 +45,12 @@ description: "Task list for Compte à Rebours de Fin de Journée implementation"
 
 > **NOTE: Écrire ces tests en premier et vérifier qu'ils échouent avant l'implémentation**
 
-- [ ] T003 [P] Écrire le test d'intégration HTTP dans `tests/test_routes.py` vérifiant que Flask distribue correctement les fichiers statiques JavaScript situés dans `app/static/js/` avec le code HTTP 200
+- [x] T003 [P] Écrire le test d'intégration HTTP dans `tests/test_routes.py` vérifiant que Flask distribue correctement les fichiers statiques JavaScript situés dans `app/static/js/` avec le code HTTP 200
 
 ### Implémentation du socle fondamental
 
-- [ ] T004 [P] Ajouter la classe utilitaire d'accessibilité `.sr-only` dans `app/static/css/style.css` (propriétés `position: absolute`, `width: 1px`, `height: 1px`, `padding: 0`, `margin: -1px`, `overflow: hidden`, `clip: rect(0, 0, 0, 0)`, `white-space: nowrap`, `border: 0`)
-- [ ] T005 Déclarer le bloc Jinja2 extensible `{% block scripts %}{% endblock %}` avant la fermeture `</body>` dans `app/templates/base.html` pour permettre l'inclusion propre des scripts client par les templates enfants
+- [x] T004 [P] Ajouter la classe utilitaire d'accessibilité `.sr-only` dans `app/static/css/style.css` (propriétés `position: absolute`, `width: 1px`, `height: 1px`, `padding: 0`, `margin: -1px`, `overflow: hidden`, `clip: rect(0, 0, 0, 0)`, `white-space: nowrap`, `border: 0`)
+- [x] T005 Déclarer le bloc Jinja2 extensible `{% block scripts %}{% endblock %}` avant la fermeture `</body>` dans `app/templates/base.html` pour permettre l'inclusion propre des scripts client par les templates enfants
 
 **Checkpoint**: Socle fondamental prêt - l'implémentation des user stories peut débuter en respectant l'ordre de priorité.
 
@@ -66,15 +66,15 @@ description: "Task list for Compte à Rebours de Fin de Journée implementation"
 
 > **NOTE: Écrire ces tests en premier et vérifier qu'ils échouent avant l'implémentation**
 
-- [ ] T006 [P] [US1] Écrire les tests d'intégration HTTP pour la route statique `GET /static/js/countdown.js` dans `tests/test_routes.py` (vérification du code HTTP 200, Content-Type `text/javascript` ou `application/javascript`, et présence des signatures de fonctions `calculateRemainingTime`, `formatCountdown`, `initCountdown`)
-- [ ] T007 [P] [US1] Écrire les tests d'intégration pour le rendu HTML de la page d'accueil avec tâche dans `tests/test_routes.py` (vérification que `GET /` avec au moins une tâche enregistrée contient l'élément `#countdown-container`, la balise `<time class="countdown-display">`, l'élément `#countdown-text` et la balise `<script defer src=".../countdown.js">` à l'intérieur de `.quote-card`)
+- [x] T006 [P] [US1] Écrire les tests d'intégration HTTP pour la route statique `GET /static/js/countdown.js` dans `tests/test_routes.py` (vérification du code HTTP 200, Content-Type `text/javascript` ou `application/javascript`, et présence des signatures de fonctions `calculateRemainingTime`, `formatCountdown`, `initCountdown`)
+- [x] T007 [P] [US1] Écrire les tests d'intégration pour le rendu HTML de la page d'accueil avec tâche dans `tests/test_routes.py` (vérification que `GET /` avec au moins une tâche enregistrée contient l'élément `#countdown-container`, la balise `<time class="countdown-display">`, l'élément `#countdown-text` et la balise `<script defer src=".../countdown.js">` à l'intérieur de `.quote-card`)
 
 ### Implementation pour User Story 1
 
-- [ ] T008 [P] [US1] Implémenter les fonctions pures `calculateRemainingTime(now = new Date())` et `formatCountdown(hours, minutes, seconds)` dans `app/static/js/countdown.js` conformément aux contraintes de `data-model.md` : calcul de la cible locale `target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0)`, non-négativité stricte `diffMs = Math.max(0, target - now)`, plage des entiers `hours` ("0 à 23"), `minutes` ("0 à 59"), `seconds` ("0 à 59"), et formatage strict à deux chiffres `HH h MM min SS s` ("Les composants numériques sont complétés par un zéro à gauche si inférieurs à 10 (padStart(2, '0')), garantissant une largeur visuelle invariable et l'absence de sautillement de mise en page")
-- [ ] T009 [US1] Implémenter la fonction `initCountdown()` et le gestionnaire de cycle de vie dans `app/static/js/countdown.js` pour cibler `#countdown-text`, effectuer une première mise à jour immédiate à l'affichage pour éviter tout délai d'initialisation, puis cadencer l'actualisation continue toutes les 1 000 ms via `setInterval`
-- [ ] T010 [US1] Intégrer la structure HTML du compte à rebours dans la section `.quote-card` et l'inclusion du script client dans le gabarit `app/templates/index.html` selon `contracts/web-routes.md` : conteneur `<div class="quote-countdown" id="countdown-container">`, libellé `<span class="countdown-label">Temps restant :</span>`, affichage `<time class="countdown-display">`, et texte dynamique `<span id="countdown-text">-- h -- min -- s</span>`
-- [ ] T011 [P] [US1] Définir les règles de style de base pour la disposition de la carte et du compte à rebours dans `app/static/css/style.css` (`.quote-card` en disposition flexbox avec espacement `justify-content: space-between`, carte `.quote-countdown` avec fond `#FAF5EE` et bordure douce, étiquette `.countdown-label` en majuscules discrètes, et affichage `.countdown-display` en police monospace `1.05rem`)
+- [x] T008 [P] [US1] Implémenter les fonctions pures `calculateRemainingTime(now = new Date())` et `formatCountdown(hours, minutes, seconds)` dans `app/static/js/countdown.js` conformément aux contraintes de `data-model.md` : calcul de la cible locale `target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0)`, non-négativité stricte `diffMs = Math.max(0, target - now)`, plage des entiers `hours` ("0 à 23"), `minutes` ("0 à 59"), `seconds` ("0 à 59"), et formatage strict à deux chiffres `HH h MM min SS s` ("Les composants numériques sont complétés par un zéro à gauche si inférieurs à 10 (padStart(2, '0')), garantissant une largeur visuelle invariable et l'absence de sautillement de mise en page")
+- [x] T009 [US1] Implémenter la fonction `initCountdown()` et le gestionnaire de cycle de vie dans `app/static/js/countdown.js` pour cibler `#countdown-text`, effectuer une première mise à jour immédiate à l'affichage pour éviter tout délai d'initialisation, puis cadencer l'actualisation continue toutes les 1 000 ms via `setInterval`
+- [x] T010 [US1] Intégrer la structure HTML du compte à rebours dans la section `.quote-card` et l'inclusion du script client dans le gabarit `app/templates/index.html` selon `contracts/web-routes.md` : conteneur `<div class="quote-countdown" id="countdown-container">`, libellé `<span class="countdown-label">Temps restant :</span>`, affichage `<time class="countdown-display">`, et texte dynamique `<span id="countdown-text">-- h -- min -- s</span>`
+- [x] T011 [P] [US1] Définir les règles de style de base pour la disposition de la carte et du compte à rebours dans `app/static/css/style.css` (`.quote-card` en disposition flexbox avec espacement `justify-content: space-between`, carte `.quote-countdown` avec fond `#FAF5EE` et bordure douce, étiquette `.countdown-label` en majuscules discrètes, et affichage `.countdown-display` en police monospace `1.05rem`)
 
 **Checkpoint**: User Story 1 pleinement fonctionnelle et testable de façon autonome (MVP atteint : affichage dynamique et défilement fluide par seconde dès qu'une tâche existe).
 
@@ -90,13 +90,13 @@ description: "Task list for Compte à Rebours de Fin de Journée implementation"
 
 > **NOTE: Écrire ces tests en premier et vérifier qu'ils échouent avant l'implémentation**
 
-- [ ] T012 [P] [US2] Écrire les tests d'intégration HTTP pour l'état d'accueil vide dans `tests/test_routes.py` (vérification que `GET /` sans aucune tâche ne contient ni `#countdown-container`, ni `<script ... countdown.js>`, conformément à SC-002)
-- [ ] T013 [P] [US2] Écrire les tests d'intégration HTTP pour la suppression de la dernière tâche et le maintien lors de la célébration à 100% dans `tests/test_routes.py` selon `data-model.md` : vérification que la suppression de l'unique tâche (`len(tasks) == 1` vers `len(tasks) == 0`) retire `#countdown-container` du DOM, et vérification que lorsque toutes les tâches sont accomplies (`percentage == 100%`, `is_all_completed == True`), `#countdown-container` et `countdown.js` restent présents conjointement avec `.celebration-card` ("Tant que le nombre total de tâches est supérieur ou égal à 1, le compte à rebours s'exécute, même si toutes les tâches sont achevées")
+- [x] T012 [P] [US2] Écrire les tests d'intégration HTTP pour l'état d'accueil vide dans `tests/test_routes.py` (vérification que `GET /` sans aucune tâche ne contient ni `#countdown-container`, ni `<script ... countdown.js>`, conformément à SC-002)
+- [x] T013 [P] [US2] Écrire les tests d'intégration HTTP pour la suppression de la dernière tâche et le maintien lors de la célébration à 100% dans `tests/test_routes.py` selon `data-model.md` : vérification que la suppression de l'unique tâche (`len(tasks) == 1` vers `len(tasks) == 0`) retire `#countdown-container` du DOM, et vérification que lorsque toutes les tâches sont accomplies (`percentage == 100%`, `is_all_completed == True`), `#countdown-container` et `countdown.js` restent présents conjointement avec `.celebration-card` ("Tant que le nombre total de tâches est supérieur ou égal à 1, le compte à rebours s'exécute, même si toutes les tâches sont achevées")
 
 ### Implementation pour User Story 2
 
-- [ ] T014 [US2] Encapsuler le conteneur `#countdown-container` et l'inclusion du script `countdown.js` sous la condition Jinja2 `{% if tasks %}` dans `app/templates/index.html` afin d'empêcher l'injection du balisage et l'exécution du timer lorsque `tasks` est vide
-- [ ] T015 [US2] Ajouter une garde défensive au début de `initCountdown()` dans `app/static/js/countdown.js` (`const container = document.getElementById('countdown-container'); const textEl = document.getElementById('countdown-text'); if (!container || !textEl) return;`) pour interrompre immédiatement l'exécution sans erreur si le conteneur est absent du DOM
+- [x] T014 [US2] Encapsuler le conteneur `#countdown-container` et l'inclusion du script `countdown.js` sous la condition Jinja2 `{% if tasks %}` dans `app/templates/index.html` afin d'empêcher l'injection du balisage et l'exécution du timer lorsque `tasks` est vide
+- [x] T015 [US2] Ajouter une garde défensive au début de `initCountdown()` dans `app/static/js/countdown.js` (`const container = document.getElementById('countdown-container'); const textEl = document.getElementById('countdown-text'); if (!container || !textEl) return;`) pour interrompre immédiatement l'exécution sans erreur si le conteneur est absent du DOM
 
 **Checkpoint**: User Stories 1 et 2 validées : affichage conditionné strictement par la présence de tâches, masquage total à l'état vide et maintien lors de la complétion à 100%.
 
@@ -112,11 +112,11 @@ description: "Task list for Compte à Rebours de Fin de Journée implementation"
 
 > **NOTE: Écrire ces tests en premier et vérifier qu'ils échouent avant l'implémentation**
 
-- [ ] T016 [P] [US3] Écrire les tests automatisés dans `tests/test_routes.py` validant l'algorithme temporel et la résilience de transition dans `app/static/js/countdown.js` (vérification de la présence de la logique `Math.max(0, target - now)` interdisant les valeurs négatives, du calcul de la date cible locale au jour suivant `now.getDate() + 1` à `00:00:00`, et du calcul direct basé sur l'horloge système absolue `new Date()` garantissant l'immunité contre le ralentissement des onglets inactifs selon `data-model.md` : "Non-négativité stricte : diffMs >= 0, hours >= 0, minutes >= 0, seconds >= 0. Aucune valeur négative n'est tolérée dans le DOM")
+- [x] T016 [P] [US3] Écrire les tests automatisés dans `tests/test_routes.py` validant l'algorithme temporel et la résilience de transition dans `app/static/js/countdown.js` (vérification de la présence de la logique `Math.max(0, target - now)` interdisant les valeurs négatives, du calcul de la date cible locale au jour suivant `now.getDate() + 1` à `00:00:00`, et du calcul direct basé sur l'horloge système absolue `new Date()` garantissant l'immunité contre le ralentissement des onglets inactifs selon `data-model.md` : "Non-négativité stricte : diffMs >= 0, hours >= 0, minutes >= 0, seconds >= 0. Aucune valeur négative n'est tolérée dans le DOM")
 
 ### Implementation pour User Story 3
 
-- [ ] T017 [US3] Consolider l'algorithme de calcul dynamique dans `app/static/js/countdown.js` selon les spécifications de `data-model.md` et `research.md` : recalcul dynamique de l'instant présent `now = new Date()` à chaque tick d'intervalle, ciblage dynamique du minuit calendaire suivant `new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0)`, basculement automatique et immédiat à `00:00:00` vers `23 h 59 min 59 s` sans interruption, et protection contre les millisecondes négatives via `Math.max(0, ...)`
+- [x] T017 [US3] Consolider l'algorithme de calcul dynamique dans `app/static/js/countdown.js` selon les spécifications de `data-model.md` et `research.md` : recalcul dynamique de l'instant présent `now = new Date()` à chaque tick d'intervalle, ciblage dynamique du minuit calendaire suivant `new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0)`, basculement automatique et immédiat à `00:00:00` vers `23 h 59 min 59 s` sans interruption, et protection contre les millisecondes négatives via `Math.max(0, ...)`
 
 **Checkpoint**: User Stories 1, 2 et 3 fonctionnelles : continuité temporelle sans faille à minuit et résilience aux onglets inactifs.
 
@@ -132,13 +132,13 @@ description: "Task list for Compte à Rebours de Fin de Journée implementation"
 
 > **NOTE: Écrire ces tests en premier et vérifier qu'ils échouent avant l'implémentation**
 
-- [ ] T018 [P] [US4] Écrire les tests d'intégration HTTP dans `tests/test_routes.py` vérifiant la conformité stricte du balisage d'accessibilité WAI-ARIA selon `contracts/web-routes.md` : présence de `role="region"`, `aria-label="Temps restant avant la fin de la journée"` sur `#countdown-container`, `aria-live="off"` sur `.countdown-display`, `aria-hidden="true"` sur `#countdown-text`, inclusion de `<span class="sr-only">Temps restant avant la fin de la journée</span>`, et absence formelle de `aria-live="polite"` ou `aria-live="assertive"`
-- [ ] T019 [P] [US4] Écrire les tests de validation de la feuille de style dans `tests/test_routes.py` vérifiant la présence des règles de mise en page responsive mobile `@media (max-width: 600px)` et de la classe d'accessibilité `.sr-only` dans `app/static/css/style.css`
+- [x] T018 [P] [US4] Écrire les tests d'intégration HTTP dans `tests/test_routes.py` vérifiant la conformité stricte du balisage d'accessibilité WAI-ARIA selon `contracts/web-routes.md` : présence de `role="region"`, `aria-label="Temps restant avant la fin de la journée"` sur `#countdown-container`, `aria-live="off"` sur `.countdown-display`, `aria-hidden="true"` sur `#countdown-text`, inclusion de `<span class="sr-only">Temps restant avant la fin de la journée</span>`, et absence formelle de `aria-live="polite"` ou `aria-live="assertive"`
+- [x] T019 [P] [US4] Écrire les tests de validation de la feuille de style dans `tests/test_routes.py` vérifiant la présence des règles de mise en page responsive mobile `@media (max-width: 600px)` et de la classe d'accessibilité `.sr-only` dans `app/static/css/style.css`
 
 ### Implementation pour User Story 4
 
-- [ ] T020 [US4] Mettre en conformité le balisage sémantique HTML5 et WAI-ARIA dans `app/templates/index.html` conformément à `data-model.md` : attribut `role="region"` et `aria-label="Temps restant avant la fin de la journée"` sur `#countdown-container`, attribut `aria-live="off"` sur la balise `<time class="countdown-display">`, masquage du texte chiffré aux lecteurs d'écran via `aria-hidden="true"` sur `#countdown-text`, et libellé statique vocal accessible `<span class="sr-only">Temps restant avant la fin de la journée</span>`
-- [ ] T021 [P] [US4] Ajouter les règles de mise en page responsive dans `app/static/css/style.css` pour les écrans de faible largeur via `@media (max-width: 600px)` (largeur `100%`, centrage des éléments avec `align-items: center`, marge supérieure de séparation `margin-top: 0.5rem`) afin de garantir une présentation fluide de 320px à 600px sans débordement (SC-005)
+- [x] T020 [US4] Mettre en conformité le balisage sémantique HTML5 et WAI-ARIA dans `app/templates/index.html` conformément à `data-model.md` : attribut `role="region"` et `aria-label="Temps restant avant la fin de la journée"` sur `#countdown-container`, attribut `aria-live="off"` sur la balise `<time class="countdown-display">`, masquage du texte chiffré aux lecteurs d'écran via `aria-hidden="true"` sur `#countdown-text`, et libellé statique vocal accessible `<span class="sr-only">Temps restant avant la fin de la journée</span>`
+- [x] T021 [P] [US4] Ajouter les règles de mise en page responsive dans `app/static/css/style.css` pour les écrans de faible largeur via `@media (max-width: 600px)` (largeur `100%`, centrage des éléments avec `align-items: center`, marge supérieure de séparation `margin-top: 0.5rem`) afin de garantir une présentation fluide de 320px à 600px sans débordement (SC-005)
 
 **Checkpoint**: Toutes les User Stories (US1 à US4) sont implémentées, accessibles, adaptatives et couvertes par les tests automatisés.
 
@@ -148,10 +148,10 @@ description: "Task list for Compte à Rebours de Fin de Journée implementation"
 
 **Purpose**: Qualité didactique du code, documentation pédagogique et validation exhaustive de bout en bout de la fonctionnalité.
 
-- [ ] T022 [P] Vérifier la conformité PEP 257 des docstrings Python et enrichir les commentaires explicatifs didactiques dans `app/static/js/countdown.js`, `app/templates/index.html` et `tests/test_routes.py` (Constitution III)
-- [ ] T023 Exécuter la suite complète de tests avec `pytest` et valider 100% de tests au vert (Constitution IV)
-- [ ] T024 Valider l'absence de toute nouvelle dépendance externe dans `requirements.txt` en confirmant la présence exclusive de `Flask` et `pytest` (Constitution V)
-- [ ] T025 Exécuter l'ensemble des scénarios de validation manuelle de bout en bout définis dans `specs/005-end-of-day-countdown/quickstart.md`
+- [x] T022 [P] Vérifier la conformité PEP 257 des docstrings Python et enrichir les commentaires explicatifs didactiques dans `app/static/js/countdown.js`, `app/templates/index.html` et `tests/test_routes.py` (Constitution III)
+- [x] T023 Exécuter la suite complète de tests avec `pytest` et valider 100% de tests au vert (Constitution IV)
+- [x] T024 Valider l'absence de toute nouvelle dépendance externe dans `requirements.txt` en confirmant la présence exclusive de `Flask` et `pytest` (Constitution V)
+- [x] T025 Exécuter l'ensemble des scénarios de validation manuelle de bout en bout définis dans `specs/005-end-of-day-countdown/quickstart.md`
 
 ---
 

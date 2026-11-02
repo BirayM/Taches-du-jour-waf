@@ -21,6 +21,16 @@
         <blockquote class="quote-text">« {{ quote.text }} »</blockquote>
         <cite class="quote-author">— {{ quote.author }}</cite>
     </div>
+    {% if tasks %}
+    <!-- Compte à rebours dynamique jusqu'à minuit -->
+    <div class="quote-countdown" id="countdown-container" role="region" aria-label="Temps restant avant la fin de la journée">
+        <span class="countdown-label">Temps restant :</span>
+        <time class="countdown-display" aria-live="off">
+            <span id="countdown-text" aria-hidden="true">-- h -- min -- s</span>
+            <span class="sr-only">Temps restant avant la fin de la journée</span>
+        </time>
+    </div>
+    {% endif %}
 </section>
 
 <!-- Section Formulaire d'ajout de tâche -->
@@ -128,4 +138,11 @@
         </ul>
     {% endif %}
 </section>
+{% endblock %}
+
+{% block scripts %}
+{% if tasks %}
+<!-- Script du compte à rebours client (chargé uniquement si des tâches existent) -->
+<script defer src="{{ url_for('static', filename='js/countdown.js') }}"></script>
+{% endif %}
 {% endblock %}
