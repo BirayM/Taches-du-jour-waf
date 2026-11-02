@@ -534,5 +534,270 @@ def test_quickstart_e2e_complete_flow(client, task_manager):
     assert "dog-cheer.svg" not in html6
 
 
+# ==============================================================================
+# Tests pour Feature 005 : Compte à Rebours de Fin de Journée (Foundational)
+# ==============================================================================
+
+def test_static_js_directory_distribution(client):
+    """
+    Vérifie que Flask distribue correctement les fichiers statiques JavaScript
+    situés dans app/static/js/ avec le code HTTP 200 (T003).
+    """
+    import os
+    js_dir = os.path.join(os.path.dirname(__file__), "..", "app", "static", "js")
+    probe_path = os.path.join(js_dir, "_probe_test.js")
+    try:
+        with open(probe_path, "w", encoding="utf-8") as f:
+            f.write("console.log('probe');")
+        response = client.get("/static/js/_probe_test.js")
+        assert response.status_code == 200
+        assert "javascript" in response.headers["Content-Type"].lower()
+        assert "console.log('probe');" in response.get_data(as_text=True)
+    finally:
+        if os.path.exists(probe_path):
+            os.remove(probe_path)
+
+
+# ==============================================================================
+# Tests pour Feature 005 : Compte à Rebours de Fin de Journée (User Story 1)
+# ==============================================================================
+
+def test_get_static_countdown_js(client):
+    """
+    Vérifie la distribution du script statique countdown.js avec code 200,
+    Content-Type adéquat et présence des signatures de fonctions requises (T006 / US1).
+    """
+    response = client.get("/static/js/countdown.js")
+    assert response.status_code == 200
+    assert "javascript" in response.headers["Content-Type"].lower()
+    content = response.get_data(as_text=True)
+    assert "calculateRemainingTime" in content
+    assert "formatCountdown" in content
+    assert "initCountdown" in content
+
+
+def test_get_index_with_tasks_contains_countdown(client, task_manager):
+    """
+    Vérifie que la page d'accueil avec au moins une tâche contient le conteneur du
+    compte à rebours dans quote-card et l'inclusion du script countdown.js (T007 / US1).
+    """
+    task_manager.add_task("Mission active")
+
+    response = client.get("/")
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+
+    # Vérification des éléments dans le DOM
+    assert 'id="countdown-container"' in html
+    assert '<time class="countdown-display"' in html
+    assert 'id="countdown-text"' in html
+    assert 'countdown.js' in html
+
+    # Vérification que le conteneur est bien au sein de la quote-card
+    quote_card_start = html.find('class="quote-card"')
+    assert quote_card_start != -1
+    quote_card_end = html.find('</section>', quote_card_start)
+    assert quote_card_end != -1
+    quote_card_content = html[quote_card_start:quote_card_end]
+    assert 'id="countdown-container"' in quote_card_content
+
+
+# ==============================================================================
+# Tests pour Feature 005 : Compte à Rebours de Fin de Journée (User Story 2)
+# ==============================================================================
+
+def test_get_index_empty_state_no_countdown(client):
+    """
+    Vérifie que la page d'accueil sans tâche ne contient ni le conteneur du compte à rebours,
+    ni l'inclusion du script client countdown.js (T012 / US2 / SC-002).
+    """
+    response = client.get("/")
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+
+    assert "countdown-container" not in html
+    assert "countdown.js" not in html
+
+
+def test_countdown_lifecycle_with_task_deletion_and_celebration(client, task_manager):
+    """
+    Vérifie le cycle de vie du compte à rebours :
+    1. Présent avec 1 tâche achevée à 100% (présence conjointe avec celebration-card).
+    2. Retiré du DOM lorsque l'unique tâche est supprimée (retour à 0 tâche).
+    (T013 / US2 / data-model.md).
+    """
+    t1 = task_manager.add_task("Mission unique")
+    task_manager.mark_completed(t1.id)
+
+    # 1. Complétion 100% : celebration-card et countdown-container sont tous deux présents
+    r_100 = client.get("/")
+    assert r_100.status_code == 200
+    html_100 = r_100.get_data(as_text=True)
+    assert "celebration-card" in html_100
+    assert 'id="countdown-container"' in html_100
+    assert "countdown.js" in html_100
+
+    # 2. Suppression de l'unique tâche restante
+    r_del = client.post(f"/tasks/{t1.id}/delete", follow_redirects=True)
+    assert r_del.status_code == 200
+    html_after_del = r_del.get_data(as_text=True)
+
+    # Le conteneur et le script doivent avoir disparu
+    assert "countdown-container" not in html_after_del
+    assert "countdown.js" not in html_after_del
+    assert "dog-resting.svg" in html_after_del
+
+
+# ==============================================================================
+# Tests pour Feature 005 : Compte à Rebours de Fin de Journée (User Story 3)
+# ==============================================================================
+
+def test_countdown_js_temporal_algorithm_and_midnight_resilience(client):
+    """
+    Vérifie la présence et la conformité des règles algorithmiques temporelles dans countdown.js :
+    - Non-négativité stricte via Math.max(0, ...)
+    - Calcul de la cible au jour suivant via now.getDate() + 1 à 00:00:00
+    - Horloge système absolue new Date() immunisée contre le ralentissement des onglets
+    - Décomposition en secondes, minutes, heures entières
+    (T016 / US3 / data-model.md).
+    """
+    response = client.get("/static/js/countdown.js")
+    assert response.status_code == 200
+    content = response.get_data(as_text=True)
+
+    # 1. Non-négativité stricte
+    assert "Math.max(0," in content
+
+    # 2. Cible dynamique au minuit suivant (J+1)
+    assert "getDate() + 1" in content
+    assert "0, 0, 0, 0" in content
+
+    # 3. Horloge absolue new Date()
+    assert "new Date()" in content
+
+    # 4. Formatage strict padStart
+    assert "padStart(2, '0')" in content
+
+
+# ==============================================================================
+# Tests pour Feature 005 : Compte à Rebours de Fin de Journée (User Story 4)
+# ==============================================================================
+
+def test_countdown_accessibility_wai_aria_compliance(client, task_manager):
+    """
+    Vérifie la conformité WAI-ARIA stricte du compte à rebours :
+    - role="region" et aria-label explicite sur #countdown-container
+    - aria-live="off" sur .countdown-display pour empêcher toute pollution sonore
+    - aria-hidden="true" sur #countdown-text (secondes défilantes masquées)
+    - libellé accessible pour lecteurs d'écran avec classe .sr-only
+    - interdiction stricte de aria-live="polite" et aria-live="assertive"
+    (T018 / US4 / FR-007 / contracts/web-routes.md).
+    """
+    task_manager.add_task("Tâche pour test ARIA")
+
+    response = client.get("/")
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+
+    # Vérification des attributs WAI-ARIA
+    assert 'role="region"' in html
+    assert 'aria-label="Temps restant avant la fin de la journée"' in html
+    assert 'aria-live="off"' in html
+    assert 'id="countdown-text" aria-hidden="true"' in html or 'aria-hidden="true"' in html
+    assert '<span class="sr-only">Temps restant avant la fin de la journée</span>' in html
+
+    # Interdiction formelle de pollution sonore cadencée
+    assert 'aria-live="polite"' not in html
+    assert 'aria-live="assertive"' not in html
+
+
+def test_countdown_css_accessibility_and_responsive_rules(client):
+    """
+    Vérifie que la feuille de style contient la classe utilitaire d'accessibilité
+    .sr-only et la media query responsive mobile pour @media (max-width: 600px)
+    (T019 / US4 / contracts/web-routes.md / style.css).
+    """
+    response = client.get("/static/css/style.css")
+    assert response.status_code == 200
+    css = response.get_data(as_text=True)
+
+    # Classe d'accessibilité .sr-only
+    assert ".sr-only" in css
+    assert "clip: rect(0, 0, 0, 0)" in css
+
+    # Adaptation responsive mobile
+    assert "@media (max-width: 600px)" in css
+    assert ".quote-countdown" in css
+
+
+# ==============================================================================
+# Validation de bout en bout (Quickstart Feature 005)
+# ==============================================================================
+
+def test_quickstart_005_countdown_all_scenarios(client, task_manager):
+    """
+    Validation de bout en bout des 7 scénarios du guide quickstart.md (T025) :
+    1. État vide initial : aucun conteneur countdown dans le DOM.
+    2. Ajout de tâche : apparition immédiate du conteneur et du script countdown.js.
+    3. Suppression de la dernière tâche : disparition immédiate du décompte.
+    4. Célébration 100% : maintien conjoint de celebration-card et countdown-container.
+    5. Résilience d'horloge absolue : vérification des règles de calcul instantané.
+    6. Transition continue à minuit : pas de valeur négative et continuité à 23h 59m 59s.
+    7. Accessibilité et responsive : aria-label, aria-live off, aria-hidden, sr-only et CSS.
+    """
+    # 1. Scénario 1 : Absence à l'état vide
+    r1 = client.get("/")
+    assert "countdown-container" not in r1.get_data(as_text=True)
+
+    # 2. Scénario 2 : Apparition avec une tâche
+    t1 = task_manager.add_task("Préparer la réunion")
+    r2 = client.get("/")
+    html2 = r2.get_data(as_text=True)
+    assert 'id="countdown-container"' in html2
+    assert "countdown.js" in html2
+    assert "Temps restant :" in html2
+
+    # 3. Scénario 3 : Disparition après suppression de l'unique tâche
+    r3 = client.post(f"/tasks/{t1.id}/delete", follow_redirects=True)
+    html3 = r3.get_data(as_text=True)
+    assert "countdown-container" not in html3
+    assert "dog-resting.svg" in html3
+
+    # 4. Scénario 4 : Maintien lors de la célébration à 100%
+    t2 = task_manager.add_task("Mission accomplie")
+    task_manager.mark_completed(t2.id)
+    r4 = client.get("/")
+    html4 = r4.get_data(as_text=True)
+    assert "celebration-card" in html4
+    assert 'id="countdown-container"' in html4
+    assert "countdown.js" in html4
+
+    # 5 & 6. Scénarios 5 et 6 : Vérification du script pour l'horloge absolue et minuit
+    r_js = client.get("/static/js/countdown.js")
+    assert r_js.status_code == 200
+    js = r_js.get_data(as_text=True)
+    assert "Math.max(0," in js
+    assert "getDate() + 1" in js
+    assert "Math.min(86399," in js
+
+    # 7. Scénario 7 : Attributs WAI-ARIA et règles CSS
+    assert 'role="region"' in html4
+    assert 'aria-label="Temps restant avant la fin de la journée"' in html4
+    assert 'aria-live="off"' in html4
+    assert 'aria-hidden="true"' in html4
+    assert "sr-only" in html4
+
+    r_css = client.get("/static/css/style.css")
+    css = r_css.get_data(as_text=True)
+    assert "@media (max-width: 600px)" in css
+    assert ".sr-only" in css
+
+
+
+
+
+
+
+
 
 
