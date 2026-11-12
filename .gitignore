@@ -54,3 +54,16 @@ data/*.json
 data/*.json
 # Données locales de l'application (Constitution, principe VI)
 .specify/workflows/runs/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
