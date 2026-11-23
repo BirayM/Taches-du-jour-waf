@@ -31,8 +31,8 @@ description: "Task list for feature implementation: Calendrier et Marquage de Da
 
 **Purpose**: Configuration initiale et fixtures de test pour l'infrastructure du calendrier
 
-- [ ] T001 Configurer la clé de persistance `CALENDAR_DATA_FILE="data/calendar.json"` dans la configuration par défaut de l'application Flask dans `app/__init__.py`
-- [ ] T002 [P] Configurer les fixtures pytest `temp_calendar_storage_path` et `calendar_manager` dans `tests/conftest.py`
+- [X] T001 Configurer la clé de persistance `CALENDAR_DATA_FILE="data/calendar.json"` dans la configuration par défaut de l'application Flask dans `app/__init__.py`
+- [X] T002 [P] Configurer les fixtures pytest `temp_calendar_storage_path` et `calendar_manager` dans `tests/conftest.py`
 
 ---
 
@@ -44,14 +44,14 @@ description: "Task list for feature implementation: Calendrier et Marquage de Da
 
 ### Tests du socle (TDD - À écrire en premier) ⚠️
 
-- [ ] T003 [P] Écrire les tests unitaires pour la validation de `CheckedDate` (`date_string` au format ISO 8601 standard `YYYY-MM-DD`, `checked` booléen, `updated_at` ISO 8601 UTC) et la persistance dans `CalendarManager` dans `tests/test_models.py`
-- [ ] T004 [P] Écrire les tests unitaires pour le calcul matriciel des semaines (7 colonnes lundi à dimanche, cases de padding d'alignement, nombre de jours par mois et gestion des années bissextiles) dans `tests/test_models.py`
+- [X] T003 [P] Écrire les tests unitaires pour la validation de `CheckedDate` (`date_string` au format ISO 8601 standard `YYYY-MM-DD`, `checked` booléen, `updated_at` ISO 8601 UTC) et la persistance dans `CalendarManager` dans `tests/test_models.py`
+- [X] T004 [P] Écrire les tests unitaires pour le calcul matriciel des semaines (7 colonnes lundi à dimanche, cases de padding d'alignement, nombre de jours par mois et gestion des années bissextiles) dans `tests/test_models.py`
 
 ### Implémentation du socle
 
-- [ ] T005 Implémenter la dataclass `CheckedDate` et sa validation stricte du format ISO 8601 standard `YYYY-MM-DD` dans `app/models.py`
-- [ ] T006 Implémenter les fonctions de calcul matriciel du calendrier mensuel (grille de 7 colonnes lundi=0 à dimanche=6, cases de décalage initiales, total de jours du mois) dans `app/models.py`
-- [ ] T007 Implémenter la classe `CalendarManager` avec chargement/sauvegarde atomique dans `data/calendar.json` et isolation totale de `data/tasks.json` dans `app/models.py`
+- [X] T005 Implémenter la dataclass `CheckedDate` et sa validation stricte du format ISO 8601 standard `YYYY-MM-DD` dans `app/models.py`
+- [X] T006 Implémenter les fonctions de calcul matriciel du calendrier mensuel (grille de 7 colonnes lundi=0 à dimanche=6, cases de décalage initiales, total de jours du mois) dans `app/models.py`
+- [X] T007 Implémenter la classe `CalendarManager` avec chargement/sauvegarde atomique dans `data/calendar.json` et isolation totale de `data/tasks.json` dans `app/models.py`
 
 **Checkpoint**: Le socle modèle et la persistance calendaire sont testés et opérationnels. L'implémentation des User Stories peut commencer.
 

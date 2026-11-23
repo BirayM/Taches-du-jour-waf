@@ -19,11 +19,18 @@ def temp_storage_path(tmp_path):
 
 
 @pytest.fixture
-def app_instance(temp_storage_path):
+def temp_calendar_storage_path(tmp_path):
+    """Fournit un chemin de fichier temporaire pour la persistance JSON du calendrier."""
+    return str(tmp_path / "test_calendar.json")
+
+
+@pytest.fixture
+def app_instance(temp_storage_path, temp_calendar_storage_path):
     """Crée une instance de Flask configurée pour les tests avec stockage temporaire."""
     app = create_app({
         "TESTING": True,
         "DATA_FILE": temp_storage_path,
+        "CALENDAR_DATA_FILE": temp_calendar_storage_path,
         "SECRET_KEY": "test-secret-key",
     })
     return app
@@ -39,3 +46,10 @@ def client(app_instance):
 def task_manager(temp_storage_path):
     """Fournit une instance de TaskManager pointant sur le stockage temporaire."""
     return TaskManager(storage_path=temp_storage_path)
+
+
+@pytest.fixture
+def calendar_manager(temp_calendar_storage_path):
+    """Fournit une instance de CalendarManager pointant sur le stockage temporaire."""
+    from app.models import CalendarManager
+    return CalendarManager(storage_path=temp_calendar_storage_path)
