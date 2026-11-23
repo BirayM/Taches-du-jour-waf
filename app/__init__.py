@@ -37,6 +37,7 @@ def create_app(test_config: Optional[Dict[str, Any]] = None) -> Flask:
     app.config.from_mapping(
         SECRET_KEY="dev-pedagogique-taches-du-jour",
         DATA_FILE="data/tasks.json",
+        CALENDAR_DATA_FILE="data/calendar.json",
     )
 
     if test_config is not None:

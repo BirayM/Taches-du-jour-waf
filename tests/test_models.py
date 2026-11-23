@@ -364,4 +364,167 @@ def test_progress_stats_empty_list_zero_division_guard(task_manager):
     assert progress.is_all_completed is False
 
 
+# ==============================================================================
+# Tests Calendrier : T003 - Validation CheckedDate et persistance CalendarManager
+# ==============================================================================
+
+def test_checked_date_valid():
+    """Vérifie la création valide d'un objet CheckedDate au format ISO 8601 (T003)."""
+    from app.models import CheckedDate
+    cd = CheckedDate(date_string="2026-11-23")
+    assert cd.date_string == "2026-11-23"
+    assert cd.checked is True
+    assert cd.updated_at != ""
+    assert "T" in cd.updated_at
+
+
+def test_checked_date_to_and_from_dict():
+    """Vérifie la sérialisation et désérialisation de CheckedDate (T003)."""
+    from app.models import CheckedDate
+    cd = CheckedDate(date_string="2026-12-25", checked=False, updated_at="2026-12-25T10:00:00+00:00")
+    data = cd.to_dict()
+    assert data == {
+        "date_string": "2026-12-25",
+        "checked": False,
+        "updated_at": "2026-12-25T10:00:00+00:00"
+    }
+
+    restored = CheckedDate.from_dict(data)
+    assert restored.date_string == "2026-12-25"
+    assert restored.checked is False
+    assert restored.updated_at == "2026-12-25T10:00:00+00:00"
+
+
+@pytest.mark.parametrize("invalid_date", [
+    "",
+    "2026-13-01",
+    "2026-02-30",
+    "2026/11/23",
+    "23-11-2026",
+    "not-a-date",
+    "2026-11",
+    12345,
+    None,
+])
+def test_checked_date_invalid_format_raises_error(invalid_date):
+    """Vérifie le rejet strict des dates mal formées ou impossibles (T003)."""
+    from app.models import CheckedDate, CalendarValidationError
+    with pytest.raises((CalendarValidationError, ValueError)):
+        CheckedDate(date_string=invalid_date)
+
+
+def test_checked_date_invalid_checked_type():
+    """Vérifie le rejet d'un type non-booléen pour le statut checked (T003)."""
+    from app.models import CheckedDate, CalendarValidationError
+    with pytest.raises((CalendarValidationError, ValueError)):
+        CheckedDate(date_string="2026-11-23", checked="true")  # type: ignore
+
+
+def test_calendar_manager_initial_state_empty(calendar_manager):
+    """Vérifie l'état initial vide du gestionnaire de calendrier (T003)."""
+    assert calendar_manager.get_all_checked_dates() == {}
+    assert calendar_manager.is_date_checked("2026-11-23") is False
+
+
+def test_calendar_manager_persistence_and_reload(temp_calendar_storage_path):
+    """Vérifie la persistance atomique dans calendar.json et la relecture (T003)."""
+    from app.models import CalendarManager, CheckedDate
+    manager1 = CalendarManager(storage_path=temp_calendar_storage_path)
+    cd = CheckedDate(date_string="2026-11-23", checked=True)
+    manager1._save_date(cd)
+
+    # Nouvelle instance pointant sur le même fichier
+    manager2 = CalendarManager(storage_path=temp_calendar_storage_path)
+    assert manager2.is_date_checked("2026-11-23") is True
+    dates = manager2.get_all_checked_dates()
+    assert "2026-11-23" in dates
+    assert dates["2026-11-23"].checked is True
+
+
+def test_calendar_manager_corrupted_file_recovery(temp_calendar_storage_path):
+    """Vérifie la résilience face à un fichier calendar.json corrompu (T003)."""
+    from pathlib import Path
+    from app.models import CalendarManager
+    Path(temp_calendar_storage_path).write_text("NOT A VALID JSON", encoding="utf-8")
+    manager = CalendarManager(storage_path=temp_calendar_storage_path)
+    assert manager.get_all_checked_dates() == {}
+
+
+def test_calendar_manager_isolation_from_tasks(task_manager, calendar_manager):
+    """Vérifie l'isolation stricte entre data/tasks.json et data/calendar.json (T003)."""
+    from app.models import CheckedDate
+    # Ajouter une tâche
+    task = task_manager.add_task("Tâche d'isolation")
+    # Ajouter une date cochée
+    cd = CheckedDate(date_string="2026-11-23", checked=True)
+    calendar_manager._save_date(cd)
+
+    # Vérifier que le calendrier n'affecte pas les tâches
+    tasks = task_manager.get_all_tasks()
+    assert len(tasks) == 1
+    assert tasks[0].id == task.id
+
+    # Et les tâches n'affectent pas le calendrier
+    checked_dates = calendar_manager.get_all_checked_dates()
+    assert len(checked_dates) == 1
+    assert "2026-11-23" in checked_dates
+
+
+# ==============================================================================
+# Tests Calendrier : T004 - Calcul matriciel des semaines et mois
+# ==============================================================================
+
+def test_month_matrix_structure_seven_columns():
+    """Vérifie que chaque semaine de la matrice comporte strictement 7 colonnes du lundi au dimanche (T004)."""
+    from app.models import get_month_matrix
+    matrix = get_month_matrix(2026, 11)
+    assert len(matrix) >= 4  # Un mois s'étale sur 4 à 6 semaines
+    for week in matrix:
+        assert len(week) == 7
+
+
+def test_month_matrix_alignment_padding_november_2026():
+    """Vérifie le décalage initial pour novembre 2026 (le 1er est un dimanche, index 6) (T004)."""
+    from app.models import get_month_matrix
+    matrix = get_month_matrix(2026, 11)
+    first_week = matrix[0]
+    # Les 6 premiers jours (lundi à samedi) doivent être du padding (None ou jour vide)
+    for i in range(6):
+        assert first_week[i] is None or first_week[i].day_number == 0
+    # Le 7e jour (dimanche) doit être le 1er novembre
+    assert first_week[6] is not None
+    assert first_week[6].day_number == 1
+    assert first_week[6].date_string == "2026-11-01"
+
+
+def test_month_matrix_leap_year_february():
+    """Vérifie la gestion des années bissextiles pour février (28 vs 29 jours) (T004)."""
+    from app.models import get_month_matrix
+    # 2024 bissextile (29 jours)
+    matrix_2024 = get_month_matrix(2024, 2)
+    days_2024 = [day.day_number for week in matrix_2024 for day in week if day and day.day_number > 0]
+    assert len(days_2024) == 29
+    assert max(days_2024) == 29
+
+    # 2026 non bissextile (28 jours)
+    matrix_2026 = get_month_matrix(2026, 2)
+    days_2026 = [day.day_number for week in matrix_2026 for day in week if day and day.day_number > 0]
+    assert len(days_2026) == 28
+    assert max(days_2026) == 28
+
+
+def test_calendar_month_info_attributes():
+    """Vérifie les métadonnées de CalendarMonthInfo (intitulé en français, année, mois, total_days) (T004)."""
+    from app.models import CalendarMonthInfo, get_calendar_month_info
+    info = get_calendar_month_info(2026, 11)
+    assert isinstance(info, CalendarMonthInfo)
+    assert info.year == 2026
+    assert info.month == 11
+    assert info.month_name == "Novembre"
+    assert info.title == "Novembre 2026"
+    assert info.total_days == 30
+    assert len(info.weeks) > 0
+
+
+
 
